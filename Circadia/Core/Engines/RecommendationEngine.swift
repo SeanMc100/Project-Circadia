@@ -15,6 +15,8 @@ struct CircadianContext {
     /// Whether the user has any daylight data source (Apple Watch). If false, light can't be auto-detected.
     var hasDaylightData: Bool
     var sunWeather: SunWeatherSnapshot?
+    /// This morning's light goal, as stored for the day. Nil falls back to the current sky.
+    var morningGoal: MorningLightGoal?
     var travel: TravelState?
     var socialJetlagMinutes: Double?
     /// Last night's midpoint minus baseline.
@@ -24,16 +26,24 @@ struct CircadianContext {
     var caffeineCutoffHours: Double = CircadianConfig.defaultCaffeineCutoffHours
     /// Kinds the user already completed or skipped today.
     var completedKinds: Set<RecommendationKind> = []
+    /// The user's habit choices; habits that are missing or "not for me" produce no cards.
+    var habits: [HabitKey: HabitStatus] = HabitCatalog.legacyDefaults
 
     /// The day recommendations belong to (rolls over at 4 AM, so 1 AM is still "yesterday evening").
-    var activeDay: Date {
-        calendar.startOfDay(for: now.addingTimeInterval(-Double(CircadianConfig.dayRolloverHour) * 3600))
-    }
+    var activeDay: Date { ClockMath.activeDay(for: now, calendar: calendar) }
 
     func time(_ minutes: Double) -> Date { ClockMath.date(on: activeDay, minutes: minutes, calendar: calendar) }
 
     /// Tonight's target bedtime (a bedtime before noon belongs to the following calendar day).
-    var bedtime: Date { time(targetBedMinutes < 720 ? targetBedMinutes + 1440 : targetBedMinutes) }
+    var bedtime: Date { time(ClockMath.bedtimeMinutes(targetBedMinutes)) }
+
+    var lightGoal: MorningLightGoal { morningGoal ?? MorningLightGoal(sky: sunWeather?.sky ?? .unknown) }
+
+    func isActive(_ habit: HabitKey) -> Bool { habits[habit]?.isActive ?? false }
+
+    var timing: HabitTiming {
+        HabitTiming(wakeMinutes: targetWakeMinutes, bedMinutes: targetBedMinutes, caffeineCutoffHours: caffeineCutoffHours)
+    }
 
     var travelIsActive: Bool {
         guard let travel else { return false }
@@ -71,17 +81,11 @@ enum RecommendationEngine {
     // MARK: - Shared helpers
 
     static func id(_ kind: RecommendationKind, _ ctx: CircadianContext) -> String {
-        let c = ctx.calendar.dateComponents([.year, .month, .day], from: ctx.activeDay)
-        return String(format: "%@-%04d-%02d-%02d", kind.rawValue, c.year ?? 0, c.month ?? 0, c.day ?? 0)
+        id(kind, day: ctx.activeDay, calendar: ctx.calendar)
     }
 
-    static func lightMinutes(for sky: SkyCondition) -> Double {
-        switch sky {
-        case .clear: CircadianConfig.lightMinutesClear
-        case .partlyCloudy: CircadianConfig.lightMinutesPartlyCloudy
-        case .overcast: CircadianConfig.lightMinutesOvercast
-        case .unknown: CircadianConfig.lightMinutesUnknownSky
-        }
+    static func id(_ kind: RecommendationKind, day: Date, calendar: Calendar) -> String {
+        "\(kind.rawValue)-\(ClockMath.dayKey(day, calendar: calendar))"
     }
 
     /// The post-wake light window: opens at wake (or sunrise, if later), closes ~2 h after wake.
@@ -101,35 +105,48 @@ enum RecommendationEngine {
     // MARK: - 1. Morning light
 
     static func morningLight(_ ctx: CircadianContext) -> Recommendation? {
+        guard ctx.isActive(.morningLight) else { return nil }
         if ctx.travelIsActive && ctx.travel?.direction == .west { return nil } // westward plan says avoid early light
-        let target = CircadianConfig.morningLightTargetMinutes
-        if ctx.hasDaylightData && ctx.light.minutesBeforeNoon >= target { return nil }
+        let goal = ctx.lightGoal
+        let alreadyOutside = ctx.hasDaylightData ? MorningLightGoal.credited(ctx.light.minutesBeforeNoon) : 0
+        if ctx.hasDaylightData && alreadyOutside >= goal.minutes { return nil }
 
         let window = morningWindow(ctx)
-        let sky = ctx.sunWeather?.sky ?? .unknown
-        let alreadyOutside = ctx.hasDaylightData ? ctx.light.minutesBeforeNoon : 0
-        let minutes = roundToFive(lightMinutes(for: sky) - alreadyOutside)
+        let sky = goal.sky
+        // What's left to do; success is judged on the whole goal, so earlier minutes aren't counted twice.
+        let minutes = roundToFive(goal.minutes - alreadyOutside)
         let isOpen = ctx.now >= window.start
 
+        // Up before sunrise: bright indoor light (or a light box) now, outdoors once it's light.
+        let wake = ctx.wakeToday ?? ctx.time(ctx.targetWakeMinutes)
+        let darkWake = window.start.timeIntervalSince(wake) / 60 >= CircadianConfig.preSunriseWakeMinutes
+        if darkWake && !isOpen {
+            return Recommendation(
+                id: id(.morningLight, ctx), kind: .morningLight,
+                title: "Up before sunrise: turn the lights up bright",
+                body: "Sunrise is at \(ClockMath.timeString(window.start)). Bright indoor light now gives your clock an early signal, and a 10,000-lux light box for about 30 minutes is a stronger option. Then get outside for about \(Int(minutes)) minutes once it's light, before \(ClockMath.timeString(window.end)). If you have an eye condition or bipolar disorder, check with a doctor before using a light box.",
+                window: window,
+                urgency: ctx.now >= wake ? .now : .soon,
+                mechanismKey: .phaseResponse,
+                successCriteria: .outdoorLight(minutes: goal.minutes, within: window),
+                visibleFrom: wake.adding(minutes: -CircadianConfig.morningLightLeadMinutes),
+                nudgeDate: wake,
+                nudgeTitle: "Bright light first, then outside",
+                nudgeBody: "Turn the lights up now. " + goal.sentence
+            )
+        }
+
         var parts: [String] = []
-        if let sunrise = ctx.sunWeather?.sun.sunrise {
-            parts.append("Sunrise \(ctx.now >= sunrise ? "was" : "is at") \(ClockMath.timeString(sunrise)).")
-        }
         switch sky {
-        case .clear: parts.append("Skies are clear, so a shorter stretch does the job.")
-        case .partlyCloudy: parts.append("It's partly cloudy.")
-        case .overcast: parts.append("It's overcast. Outdoor light is still far brighter than indoor lighting; it just takes a bit longer.")
-        case .unknown: parts.append("Cloud cover is unknown, so this assumes average conditions.")
+        case .clear: parts.append("Skies are clear, so \(Int(goal.minutes)) minutes does it today.")
+        case .partlyCloudy: parts.append("It's partly cloudy, so today's goal is \(Int(goal.minutes)) minutes.")
+        case .overcast: parts.append("It's overcast, so today's goal is a longer \(Int(goal.minutes)) minutes.")
+        case .unknown: parts.append("Cloud cover is unknown, so today's goal is \(Int(goal.minutes)) minutes.")
         }
-        if ctx.sunWeather?.weather?.isPrecipitating == true {
-            parts.append("If it's raining, a covered porch or an open doorway still counts.")
-        }
-        parts.append("You have a window until \(ClockMath.timeString(window.end)).")
-        if alreadyOutside >= 1 {
-            parts.append("You've logged \(Int(alreadyOutside.rounded())) min outdoors so far.")
-        }
+        if alreadyOutside > 0 { parts.append("You've had about \(Int(alreadyOutside)) so far.") }
+        parts.append("Window until \(ClockMath.timeString(window.end)).")
         if !ctx.hasDaylightData {
-            parts.append("Tap Done when you're back; without Apple Watch daylight data the app can't detect it automatically.")
+            parts.append("Tap Done when you're back.")
         }
 
         return Recommendation(
@@ -140,15 +157,18 @@ enum RecommendationEngine {
             window: window,
             urgency: isOpen ? .now : .soon,
             mechanismKey: .lightAndSCN,
-            successCriteria: .outdoorLight(minutes: minutes, within: window),
+            successCriteria: .outdoorLight(minutes: goal.minutes, within: window),
             visibleFrom: window.start.adding(minutes: -CircadianConfig.morningLightLeadMinutes),
-            nudgeDate: window.start
+            nudgeDate: window.start,
+            nudgeTitle: "Time for morning light",
+            nudgeBody: goal.sentence
         )
     }
 
     // MARK: - 2. Anchor wake time
 
     static func anchorWake(_ ctx: CircadianContext) -> Recommendation? {
+        guard ctx.isActive(.consistentWake) else { return nil }
         let jetlag = ctx.socialJetlagMinutes ?? 0
         let drift = ctx.todayDriftMinutes ?? 0
         guard let tomorrow = ctx.calendar.date(byAdding: .day, value: 1, to: ctx.activeDay) else { return nil }
@@ -162,9 +182,9 @@ enum RecommendationEngine {
         let latestWake = targetWake.adding(minutes: tolerance)
         let body: String
         if highJetlag {
-            body = "Your weekend sleep runs about \(ClockMath.durationString(jetlag)) later than on weekdays. Try to be up by \(ClockMath.timeString(latestWake)) tomorrow, even after a late night, and get outside soon after. A steady wake time limits how far your clock drifts before Monday."
+            body = "Weekend sleep runs about \(ClockMath.durationString(jetlag)) later than weekdays. Be up by \(ClockMath.timeString(latestWake)) tomorrow and get outside soon after."
         } else {
-            body = "Last night ran about \(ClockMath.durationString(drift)) later than your baseline. Waking near \(ClockMath.timeString(targetWake)) tomorrow and getting morning light pulls your clock back faster than sleeping in again."
+            body = "Last night ran about \(ClockMath.durationString(drift)) later than your baseline. Wake near \(ClockMath.timeString(targetWake)) tomorrow and get morning light."
         }
         let eveningStart = ctx.time(17 * 60)
         return Recommendation(
@@ -182,18 +202,31 @@ enum RecommendationEngine {
     // MARK: - 3. Evening wind-down
 
     static func windDown(_ ctx: CircadianContext) -> Recommendation? {
+        let active = HabitCatalog.eveningHabits.filter(ctx.isActive)
+        guard !active.isEmpty else { return nil }
+        let dims = active.contains(.eveningDim)
         let bed = ctx.bedtime
         let start = bed.adding(minutes: -CircadianConfig.windDownLeadMinutes)
         let started = ctx.now >= start
+        let title: String
+        if started {
+            title = dims ? "Start dimming the lights" : "Tonight's wind-down"
+        } else {
+            title = "Wind-down starts at \(ClockMath.timeString(start))"
+        }
+        let body = dims
+            ? "Switch overhead lights off, use warm low lamps and dim your screens before your \(ClockMath.timeString(bed)) bedtime."
+            : "Your evening habits before your \(ClockMath.timeString(bed)) bedtime."
         return Recommendation(
             id: id(.windDown, ctx), kind: .windDown,
-            title: started ? "Start dimming the lights" : "Wind-down starts at \(ClockMath.timeString(start))",
-            body: "Your target bedtime is \(ClockMath.timeString(bed)). From \(ClockMath.timeString(start)), switch overhead lights off or down, use warm low lamps, and turn screen brightness down. This keeps evening light from pushing tonight's melatonin rise later.",
+            title: title,
+            body: body,
             window: DateInterval(start: start, end: bed),
             urgency: started ? .now : .soon,
             mechanismKey: .eveningLight,
-            successCriteria: .lightsDimmed(by: start.adding(minutes: 30)),
+            successCriteria: dims ? .lightsDimmed(by: start.adding(minutes: 30)) : .eveningPlan(bedtime: bed),
             visibleFrom: start.adding(minutes: -CircadianConfig.windDownShowAheadMinutes),
+            steps: active.compactMap { $0.eveningStep(ctx.timing) },
             nudgeDate: start
         )
     }
@@ -201,6 +234,7 @@ enum RecommendationEngine {
     // MARK: - 4. Caffeine cutoff
 
     static func caffeineCutoff(_ ctx: CircadianContext) -> Recommendation? {
+        guard ctx.isActive(.caffeineCutoff) else { return nil }
         let bed = ctx.bedtime
         let hours = min(max(ctx.caffeineCutoffHours, CircadianConfig.caffeineCutoffRange.lowerBound), CircadianConfig.caffeineCutoffRange.upperBound)
         let cutoff = bed.adding(minutes: -hours * 60)
@@ -211,7 +245,7 @@ enum RecommendationEngine {
         return Recommendation(
             id: id(.caffeineCutoff, ctx), kind: .caffeineCutoff,
             title: "Last caffeine by \(ClockMath.timeString(cutoff))",
-            body: "That leaves about \(hoursText) hours before your \(ClockMath.timeString(bed)) bedtime. Caffeine's effects can last many hours, and how long varies a lot between people. Adjust the cutoff in Settings if you know you're more or less sensitive.",
+            body: "That leaves about \(hoursText) hours before your \(ClockMath.timeString(bed)) bedtime. You can adjust the cutoff in Settings.",
             window: DateInterval(start: visibleFrom, end: cutoff),
             urgency: soon ? .soon : .later,
             mechanismKey: .caffeineAdenosine,
@@ -225,9 +259,10 @@ enum RecommendationEngine {
 
     static func lateDayLight(_ ctx: CircadianContext) -> Recommendation? {
         if ctx.travelIsActive { return nil } // the travel plan owns light timing while shifting
+        guard ctx.isActive(.morningLight) else { return nil }
         let missed: Bool
         if ctx.hasDaylightData {
-            missed = ctx.light.minutesBeforeNoon < CircadianConfig.morningLightTargetMinutes * CircadianConfig.missedMorningLightFraction
+            missed = MorningLightGoal.credited(ctx.light.minutesBeforeNoon) < ctx.lightGoal.minutes * CircadianConfig.missedMorningLightFraction
         } else {
             missed = !ctx.completedKinds.contains(.morningLight)
         }
@@ -243,7 +278,7 @@ enum RecommendationEngine {
         return Recommendation(
             id: id(.lateDayLight, ctx), kind: .lateDayLight,
             title: "Catch some afternoon daylight",
-            body: "Your morning light window passed with little outdoor time. About \(Int(CircadianConfig.lateDayLightMinutes)) minutes outside before \(ClockMath.timeString(end)) is a weaker substitute: afternoon light moves your clock less than morning light does. It still helps, and brighter days tend to make you less sensitive to light in the evening.",
+            body: "You missed morning light. About \(Int(CircadianConfig.lateDayLightMinutes)) minutes outside before \(ClockMath.timeString(end)) is a weaker substitute, but it still helps.",
             window: window,
             urgency: .soon,
             mechanismKey: .phaseResponse,
@@ -261,7 +296,6 @@ enum RecommendationEngine {
         let dayIndex = travel.dayIndex(on: ctx.activeDay, calendar: cal)
         let totalDays = max(travel.planDays, dayIndex)
         let hours = abs(travel.shiftHours)
-        let hoursText = hours == hours.rounded() ? "\(Int(hours))" : String(format: "%.1f", hours)
         let largeEast = travel.direction == .east && hours >= CircadianConfig.travelLargeEastwardHours
 
         let seek: DateInterval
@@ -294,10 +328,7 @@ enum RecommendationEngine {
             steps.append("\(label): shift ~1 h \(travel.direction == .east ? "earlier" : "later"); seek \(lightWindow).")
         }
 
-        var body = "You're about \(hoursText) h \(travel.direction == .east ? "ahead of" : "behind") home time, so your clock needs to move \(travel.direction == .east ? "earlier" : "later"). Today: get outdoor light \(ClockMath.timeString(seek.start))–\(ClockMath.timeString(seek.end)), \(avoidText), and \(shiftText)."
-        if largeEast {
-            body += " With a jump this large, start with late-morning rather than early-morning light for the first couple of days."
-        }
+        let body = "Today: get outdoor light \(ClockMath.timeString(seek.start))–\(ClockMath.timeString(seek.end)), \(avoidText), and \(shiftText)."
 
         return Recommendation(
             id: id(.travelShift, ctx), kind: .travelShift,
@@ -322,7 +353,7 @@ enum RecommendationEngine {
         return Recommendation(
             id: id(.maintenance, ctx), kind: .maintenance,
             title: title,
-            body: "Your timing is steady and close to your baseline. Nothing to fix today; keep your wake time and morning light as they are.",
+            body: "Your timing is steady and close to your baseline. Keep your wake time and morning light as they are.",
             window: nil,
             urgency: .info,
             mechanismKey: .consistency,

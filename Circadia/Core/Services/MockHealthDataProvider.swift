@@ -43,6 +43,9 @@ final class MockHealthDataProvider: HealthDataProviding {
     private let days: Int
     private let nowProvider: () -> Date
     private var cache: (key: Date, data: MockDataset)?
+    /// False simulates a phone-only user: nights look like sleep-log entries (rounded, no stages),
+    /// last night is left for the user to log, and there's no daylight or heart data.
+    var includesWearableData = true
 
     init(days: Int = CircadianConfig.mockDays, calendar: Calendar = .current, now: @escaping () -> Date = Date.init) {
         self.days = days
@@ -65,15 +68,29 @@ final class MockHealthDataProvider: HealthDataProviding {
     }
 
     func sleepSamples(from start: Date, to end: Date) async throws -> [SleepSample] {
-        dataset().sleep.filter { $0.end > start && $0.start < end }
+        let sleep = includesWearableData ? dataset().sleep : Self.loggedNights(from: dataset().sleep, now: nowProvider(), calendar: calendar)
+        return sleep.filter { $0.end > start && $0.start < end }
     }
 
     func daylightSamples(from start: Date, to end: Date) async throws -> [DaylightSample] {
-        dataset().daylight.filter { $0.end > start && $0.start < end }
+        guard includesWearableData else { return [] }
+        return dataset().daylight.filter { $0.end > start && $0.start < end }
     }
 
     func secondarySamples(_ metric: SecondaryMetric, from start: Date, to end: Date) async throws -> [MetricSample] {
-        (dataset().secondary[metric] ?? []).filter { $0.date >= start && $0.date <= end }
+        guard includesWearableData else { return [] }
+        return (dataset().secondary[metric] ?? []).filter { $0.date >= start && $0.date <= end }
+    }
+
+    /// One rounded sample per main sleep, as if typed into the sleep log, except the night
+    /// ending today.
+    nonisolated static func loggedNights(from samples: [SleepSample], now: Date, calendar: Calendar) -> [SleepSample] {
+        func round(_ date: Date) -> Date {
+            Date(timeIntervalSince1970: (date.timeIntervalSince1970 / 300).rounded() * 300)
+        }
+        return SleepSessionBuilder.buildNights(from: samples, calendar: calendar)
+            .filter { !calendar.isDate($0.wakeDay, inSameDayAs: now) }
+            .map { SleepLogMerger.sample(SleepLog(wakeDay: $0.wakeDay, onset: round($0.primary.onset), wake: round($0.primary.wake))) }
     }
 
     // MARK: - Generation

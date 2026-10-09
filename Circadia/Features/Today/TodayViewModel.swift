@@ -20,41 +20,31 @@ struct TodayViewModel {
         return nil
     }
 
+    /// Scored against "Your usual sleep" until enough nights are logged.
+    var provisionalProgress: (have: Int, need: Int)? {
+        if case .provisional(let have, let need) = app.snapshot.status { return (have, need) }
+        return nil
+    }
+
     var hasNoData: Bool { app.snapshot.status == .noData && app.hasLoadedOnce }
 
     var dateTitle: String {
         now.formatted(.dateTime.weekday(.wide).month(.wide).day())
     }
 
+    /// The ideal day for the user's targets, with today's score in the middle.
     var ring: RingModel {
-        let cal = calendar
-        var model = RingModel(nowMinutes: ClockMath.minutesFromMidnight(now, calendar: cal), centerValue: "–", centerCaption: "alignment estimate")
-
-        if let night = app.snapshot.latestNight,
-           now.timeIntervalSince(night.primary.wake) < 36 * 3600 {
-            model.sleep = .init(start: ClockMath.minutesFromMidnight(night.primary.onset, calendar: cal),
-                                end: ClockMath.minutesFromMidnight(night.primary.wake, calendar: cal))
-        }
-        model.light = SleepSessionBuilder.mergeIntervals(app.todayDaylight.map { DateInterval(start: $0.start, end: $0.end) })
-            .map { .init(start: ClockMath.minutesFromMidnight($0.start, calendar: cal), end: ClockMath.minutesFromMidnight($0.end, calendar: cal)) }
-        if let sunrise = app.sunWeather?.sun.sunrise, let sunset = app.sunWeather?.sun.sunset {
-            model.daylight = .init(start: ClockMath.minutesFromMidnight(sunrise, calendar: cal), end: ClockMath.minutesFromMidnight(sunset, calendar: cal))
-        }
-        if let window = lightWindow {
-            model.lightWindow = .init(start: ClockMath.minutesFromMidnight(window.start, calendar: cal),
-                                      end: ClockMath.minutesFromMidnight(window.end, calendar: cal))
-        }
-
+        var model = RingModel(timing: app.settings.timing, nowMinutes: ClockMath.minutesFromMidnight(now, calendar: calendar))
         if let score = app.snapshot.score {
             model.centerValue = "\(score.value)"
-            model.centerCaption = "alignment estimate"
+            model.centerBand = score.bandTitle
         } else if let progress = calibrationProgress {
             model.centerValue = "\(progress.have)/\(progress.need)"
             model.centerCaption = "nights calibrating"
         } else if !app.hasLoadedOnce {
             model.centerCaption = "loading"
         } else {
-            model.centerCaption = "no sleep data yet"
+            model.centerCaption = isPhoneOnly ? "log last night to start" : "no sleep data yet"
         }
         return model
     }
@@ -66,7 +56,7 @@ struct TodayViewModel {
 
     var lightWindowText: String {
         guard let window = lightWindow else {
-            if app.hasDaylightData, let light = todaysLightSummary, light.minutesBeforeNoon >= CircadianConfig.morningLightTargetMinutes {
+            if app.canSenseLight, let today = app.days.last, calendar.isDateInToday(today.day), today.metLightGoal {
                 return "Morning light target met"
             }
             return "No light window right now"
@@ -76,11 +66,13 @@ struct TodayViewModel {
         return "Light window closed"
     }
 
-    var todaysLightSummary: DaylightSummary? {
-        app.days.last.flatMap { calendar.isDateInToday($0.day) ? $0.light : nil }
+    var isDemoData: Bool { app.settings.useMockData }
+
+    /// "Tuesday night" for the night that ended on `wakeDay`.
+    func nightName(_ wakeDay: Date) -> String {
+        let evening = calendar.date(byAdding: .day, value: -1, to: wakeDay) ?? wakeDay
+        return "\(evening.formatted(.dateTime.weekday(.wide))) night"
     }
 
-    var dataSourceNote: String? {
-        app.settings.useMockData ? "Demo mode: showing synthetic data. Turn it off in Settings to use Apple Health." : nil
-    }
+    var isPhoneOnly: Bool { app.settings.trackingMode == .phoneOnly }
 }

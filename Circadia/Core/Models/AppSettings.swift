@@ -1,6 +1,23 @@
 import Foundation
 import Observation
 
+/// Where sleep timing comes from.
+enum TrackingMode: String, Codable, CaseIterable, Identifiable, Sendable {
+    /// Apple Watch, another tracker or a sleep app, read from Apple Health.
+    case wearable
+    /// The user logs each night in the app.
+    case phoneOnly
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .wearable: "From a wearable"
+        case .phoneOnly: "I'll log it"
+        }
+    }
+}
+
 /// User preferences and small pieces of app state, persisted in UserDefaults.
 @Observable
 final class AppSettings {
@@ -8,6 +25,15 @@ final class AppSettings {
 
     var hasCompletedOnboarding: Bool { didSet { defaults.set(hasCompletedOnboarding, forKey: Keys.onboarding) } }
     var useMockData: Bool { didSet { defaults.set(useMockData, forKey: Keys.mock) } }
+    var trackingMode: TrackingMode { didSet { defaults.set(trackingMode.rawValue, forKey: Keys.trackingMode) } }
+    /// When the user switched to logging sleep; nights before this are never asked about.
+    var phoneOnlySince: Date? { didSet { defaults.set(phoneOnlySince, forKey: Keys.phoneOnlySince) } }
+    /// Wake days whose sleep-log question the user dismissed ("Not sure"). Only the last week is kept.
+    var sleepLogSkippedDays: [Date] { didSet { defaults.set(sleepLogSkippedDays, forKey: Keys.sleepLogSkippedDays) } }
+    /// The morning "Log last night?" notification (phone-only mode).
+    var sleepLogReminderEnabled: Bool { didSet { defaults.set(sleepLogReminderEnabled, forKey: Keys.sleepLogReminder) } }
+    /// Answers to "Your usual sleep" (phone-only onboarding). Gives a provisional baseline.
+    var usualSleep: UsualSleep? { didSet { save(usualSleep, forKey: Keys.usualSleep) } }
 
     /// Minutes after midnight, 0..<1440.
     var targetWakeMinutes: Double { didSet { defaults.set(targetWakeMinutes, forKey: Keys.targetWake) } }
@@ -34,6 +60,20 @@ final class AppSettings {
 
     var locationSkipped: Bool { didSet { defaults.set(locationSkipped, forKey: Keys.locationSkipped) } }
 
+    /// The user's answer per habit. Missing means not chosen (inactive).
+    var habitStatuses: [HabitKey: HabitStatus] {
+        didSet {
+            defaults.set(Dictionary(uniqueKeysWithValues: habitStatuses.map { ($0.key.rawValue, $0.value.rawValue) }),
+                         forKey: Keys.habits)
+        }
+    }
+    /// When habits were first chosen; the morning check-in only asks about nights after this.
+    var habitsChosenAt: Date? { didSet { defaults.set(habitsChosenAt, forKey: Keys.habitsChosenAt) } }
+    /// The last day the morning recap opened by itself (it opens once a day).
+    var lastRecapDay: Date? { didSet { defaults.set(lastRecapDay, forKey: Keys.lastRecapDay) } }
+    /// Each morning's light goal, keyed "yyyy-MM-dd" (see `MorningLightGoal.key`).
+    var morningLightGoals: [String: MorningLightGoal] { didSet { save(morningLightGoals, forKey: Keys.morningLightGoals) } }
+
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         hasCompletedOnboarding = defaults.bool(forKey: Keys.onboarding)
@@ -43,6 +83,11 @@ final class AppSettings {
         let mockDefault = false
         #endif
         useMockData = defaults.object(forKey: Keys.mock) as? Bool ?? mockDefault
+        trackingMode = defaults.string(forKey: Keys.trackingMode).flatMap(TrackingMode.init(rawValue:)) ?? .wearable
+        phoneOnlySince = defaults.object(forKey: Keys.phoneOnlySince) as? Date
+        sleepLogSkippedDays = defaults.array(forKey: Keys.sleepLogSkippedDays) as? [Date] ?? []
+        sleepLogReminderEnabled = defaults.object(forKey: Keys.sleepLogReminder) as? Bool ?? true
+        usualSleep = Self.load(UsualSleep.self, from: defaults, forKey: Keys.usualSleep)
         targetWakeMinutes = defaults.object(forKey: Keys.targetWake) as? Double ?? CircadianConfig.defaultTargetWakeMinutes
         targetBedMinutes = defaults.object(forKey: Keys.targetBed) as? Double ?? CircadianConfig.defaultTargetBedMinutes
         targetsAreCustom = defaults.bool(forKey: Keys.targetsCustom)
@@ -60,6 +105,60 @@ final class AppSettings {
         homeLongitude = defaults.object(forKey: Keys.homeLongitude) as? Double
         travelState = Self.load(TravelState.self, from: defaults, forKey: Keys.travel)
         locationSkipped = defaults.bool(forKey: Keys.locationSkipped)
+        lastRecapDay = defaults.object(forKey: Keys.lastRecapDay) as? Date
+        morningLightGoals = Self.load([String: MorningLightGoal].self, from: defaults, forKey: Keys.morningLightGoals) ?? [:]
+        if let raw = defaults.dictionary(forKey: Keys.habits) as? [String: String] {
+            habitStatuses = Dictionary(uniqueKeysWithValues: raw.compactMap { key, value in
+                guard let habit = HabitKey(rawValue: key), let status = HabitStatus(rawValue: value) else { return nil }
+                return (habit, status)
+            })
+            habitsChosenAt = defaults.object(forKey: Keys.habitsChosenAt) as? Date
+        } else if defaults.bool(forKey: Keys.onboarding) {
+            // Set up before habits existed: keep the four core cards they already had.
+            habitStatuses = HabitCatalog.legacyDefaults
+            habitsChosenAt = .distantPast
+        } else {
+            habitStatuses = [:]
+            habitsChosenAt = nil
+        }
+    }
+
+    // MARK: - Habits
+
+    func status(for habit: HabitKey) -> HabitStatus? { habitStatuses[habit] }
+
+    // MARK: - Sleep log
+
+    func isSleepLogSkipped(_ day: Date, calendar: Calendar = .current) -> Bool {
+        sleepLogSkippedDays.contains { calendar.isDate($0, inSameDayAs: day) }
+    }
+
+    func skipSleepLog(_ day: Date, calendar: Calendar = .current) {
+        let weekAgo = calendar.date(byAdding: .day, value: -7, to: day) ?? day
+        sleepLogSkippedDays = sleepLogSkippedDays.filter { $0 > weekAgo } + [calendar.startOfDay(for: day)]
+    }
+
+    var focusHabitCount: Int { habitStatuses.values.filter { $0 == .wantToStart }.count }
+
+    var timing: HabitTiming {
+        HabitTiming(wakeMinutes: targetWakeMinutes, bedMinutes: targetBedMinutes, caffeineCutoffHours: caffeineCutoffHours)
+    }
+
+    // MARK: - Morning light goals
+
+    func morningLightGoal(for day: Date, calendar: Calendar = .current) -> MorningLightGoal? {
+        morningLightGoals[MorningLightGoal.key(for: day, calendar: calendar)]
+    }
+
+    /// Stores a day's goal and drops goals older than the score history needs.
+    func setMorningLightGoal(_ goal: MorningLightGoal, for day: Date, calendar: Calendar = .current) {
+        let key = MorningLightGoal.key(for: day, calendar: calendar)
+        guard morningLightGoals[key] != goal else { return }
+        let oldest = calendar.date(byAdding: .day, value: -CircadianConfig.morningGoalHistoryDays, to: day) ?? day
+        let cutoff = MorningLightGoal.key(for: oldest, calendar: calendar)
+        var goals = morningLightGoals.filter { $0.key >= cutoff }
+        goals[key] = goal
+        morningLightGoals = goals
     }
 
     // MARK: - Nudge back-off
@@ -90,6 +189,11 @@ final class AppSettings {
         let fresh = AppSettings(defaults: defaults)
         hasCompletedOnboarding = fresh.hasCompletedOnboarding
         useMockData = fresh.useMockData
+        trackingMode = .wearable
+        phoneOnlySince = nil
+        sleepLogSkippedDays = []
+        sleepLogReminderEnabled = true
+        usualSleep = nil
         targetWakeMinutes = fresh.targetWakeMinutes
         targetBedMinutes = fresh.targetBedMinutes
         targetsAreCustom = false
@@ -103,6 +207,10 @@ final class AppSettings {
         homeLongitude = nil
         travelState = nil
         locationSkipped = false
+        habitStatuses = [:]
+        habitsChosenAt = nil
+        lastRecapDay = nil
+        morningLightGoals = [:]
     }
 
     // MARK: - Persistence helpers
@@ -123,6 +231,11 @@ final class AppSettings {
     private enum Keys {
         static let onboarding = "settings.onboardingComplete"
         static let mock = "settings.useMockData"
+        static let trackingMode = "settings.trackingMode"
+        static let phoneOnlySince = "settings.phoneOnlySince"
+        static let sleepLogSkippedDays = "settings.sleepLogSkippedDays"
+        static let sleepLogReminder = "settings.sleepLogReminder"
+        static let usualSleep = "settings.usualSleep"
         static let targetWake = "settings.targetWake"
         static let targetBed = "settings.targetBed"
         static let targetsCustom = "settings.targetsCustom"
@@ -136,8 +249,13 @@ final class AppSettings {
         static let homeLongitude = "settings.homeLongitude"
         static let travel = "settings.travelState"
         static let locationSkipped = "settings.locationSkipped"
+        static let habits = "settings.habitStatuses"
+        static let habitsChosenAt = "settings.habitsChosenAt"
+        static let lastRecapDay = "settings.lastRecapDay"
+        static let morningLightGoals = "settings.morningLightGoals"
 
-        static let all = [onboarding, mock, targetWake, targetBed, targetsCustom, caffeine, enabledNudges,
-                          quietStart, quietEnd, dismissals, weights, homeTZ, homeLongitude, travel, locationSkipped]
+        static let all = [onboarding, mock, trackingMode, phoneOnlySince, sleepLogSkippedDays, sleepLogReminder, usualSleep, targetWake, targetBed, targetsCustom, caffeine, enabledNudges,
+                          quietStart, quietEnd, dismissals, weights, homeTZ, homeLongitude, travel, locationSkipped,
+                          habits, habitsChosenAt, lastRecapDay, morningLightGoals]
     }
 }

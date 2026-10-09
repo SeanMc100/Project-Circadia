@@ -119,6 +119,12 @@ struct DayMetrics: Identifiable, Sendable {
     var hrv: Double?
     var restingHeartRate: Double?
     var wristTemperature: Double?
+    /// That morning's light goal in minutes (see `MorningLightGoal`).
+    var lightGoalMinutes: Double = CircadianConfig.lightMinutesUnknownSky
+
+    /// Outdoor minutes before noon as credited toward the goal.
+    var creditedLightMinutes: Double { MorningLightGoal.credited(light.minutesBeforeNoon) }
+    var metLightGoal: Bool { creditedLightMinutes >= lightGoalMinutes }
 
     func secondaryValue(_ metric: SecondaryMetric) -> Double? {
         switch metric {
@@ -148,7 +154,7 @@ struct SunTimes: Equatable, Sendable {
     }
 }
 
-enum SkyCondition: String, Sendable {
+enum SkyCondition: String, Codable, Sendable {
     case clear, partlyCloudy, overcast, unknown
 
     init(cloudCover: Double?) {

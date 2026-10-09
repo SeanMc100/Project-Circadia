@@ -79,6 +79,8 @@ enum SuccessCriteria: Hashable, Sendable {
     case wakeNear(Date, toleranceMinutes: Double)
     case noCaffeineAfter(Date)
     case lightsDimmed(by: Date)
+    /// Evening habits other than dimming (alcohol, last meal, screens, bedtime).
+    case eveningPlan(bedtime: Date)
     case keepRoutine
 
     var summary: String {
@@ -91,6 +93,8 @@ enum SuccessCriteria: Hashable, Sendable {
             "No caffeine after \(ClockMath.timeString(date))"
         case .lightsDimmed(let date):
             "Lights dimmed by \(ClockMath.timeString(date))"
+        case .eveningPlan(let bedtime):
+            "Evening habits before \(ClockMath.timeString(bedtime))"
         case .keepRoutine:
             "Keep your current routine"
         }
@@ -110,6 +114,7 @@ enum SuccessCriteria: Hashable, Sendable {
         case .wakeNear: "wakeNear"
         case .noCaffeineAfter: "noCaffeineAfter"
         case .lightsDimmed: "lightsDimmed"
+        case .eveningPlan: "eveningPlan"
         case .keepRoutine: "keepRoutine"
         }
     }
@@ -131,6 +136,9 @@ struct Recommendation: Identifiable, Hashable, Sendable {
     var steps: [String] = []
     /// When a notification should fire for this recommendation, if any.
     var nudgeDate: Date?
+    /// Notification wording, when it should differ from the card's.
+    var nudgeTitle: String?
+    var nudgeBody: String?
 
     /// The interval used to judge success: the light window for light kinds, otherwise `window`.
     var trackingWindow: DateInterval? {
@@ -168,6 +176,25 @@ struct ScoreComponent: Identifiable, Equatable, Sendable {
 struct AlignmentScore: Equatable, Sendable {
     let value: Int
     let components: [ScoreComponent]
+
+    /// Plain-language band for the number, e.g. "Fair".
+    var bandTitle: String {
+        if value >= CircadianConfig.strongScoreThreshold { return "Strong" }
+        if value >= CircadianConfig.fairScoreThreshold { return "Fair" }
+        return "Needs work"
+    }
+}
+
+/// One day's alignment estimate, kept for the score history.
+struct ScorePoint: Identifiable, Equatable, Sendable {
+    var id: Date { day }
+    let day: Date
+    let value: Int
+    /// Component values (0...1); a kind is missing when it wasn't available that day.
+    let components: [ScoreComponentKind: Double]
+    let consistencySD: Double?
+    let drift: Double?
+    let lightMinutesBeforeNoon: Double?
 }
 
 struct MorningLightAssessment: Equatable, Sendable {
@@ -176,6 +203,8 @@ struct MorningLightAssessment: Equatable, Sendable {
     let combined: Double
     let firstLightMinutes: Double?
     let minutesBeforeNoon: Double
+    /// That morning's goal (see `MorningLightGoal`).
+    let goalMinutes: Double
     /// Whether this assessment is today's (morning complete) or yesterday's.
     let isToday: Bool
 }
@@ -184,6 +213,8 @@ struct CircadianSnapshot: Equatable, Sendable {
     enum Status: Equatable, Sendable {
         case noData
         case calibrating(have: Int, need: Int)
+        /// Scored against "Your usual sleep" until enough nights are logged.
+        case provisional(have: Int, need: Int)
         case ready
     }
 

@@ -29,6 +29,7 @@ targets:
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait
         NSHealthShareUsageDescription: "Circadia reads your sleep timing, time in daylight, heart rate variability, resting heart rate and wrist temperature to estimate your body-clock alignment and time its suggestions. Your data stays on this iPhone."
+        NSCameraUsageDescription: "Light Check uses the camera to estimate how bright your surroundings are and the colour of the light. Frames are averaged on your phone and never recorded or saved."
         NSLocationWhenInUseUsageDescription: "Circadia uses your approximate location to find local sunrise, sunset and cloud cover so it can time outdoor-light suggestions, and to notice when you change time zones."
         UIBackgroundModes:
           - fetch
@@ -41,14 +42,44 @@ targets:
         com.apple.developer.healthkit.access: []
         com.apple.developer.healthkit.background-delivery: true
         com.apple.developer.weatherkit: true
+        com.apple.security.application-groups:
+          - group.com.projectcircadia.app
+    dependencies:
+      - target: CircadiaWidgets
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.circadia.app
+        PRODUCT_BUNDLE_IDENTIFIER: com.projectcircadia.app
         TARGETED_DEVICE_FAMILY: "1"
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
         CODE_SIGN_STYLE: Automatic
-        DEVELOPMENT_TEAM: ""
+        DEVELOPMENT_TEAM: V7Z23T9D5C
+        ENABLE_PREVIEWS: YES
+  CircadiaWidgets:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: CircadiaWidgets
+      - path: Circadia/Shared
+    info:
+      path: CircadiaWidgets/Info.plist
+      properties:
+        CFBundleDisplayName: Circadia
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    entitlements:
+      path: CircadiaWidgets/CircadiaWidgets.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - group.com.projectcircadia.app
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.projectcircadia.app.widgets
+        TARGETED_DEVICE_FAMILY: "1"
+        CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: V7Z23T9D5C
         ENABLE_PREVIEWS: YES
   CircadiaTests:
     type: bundle.unit-test

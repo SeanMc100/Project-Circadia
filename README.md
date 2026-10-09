@@ -26,6 +26,7 @@ xcodebuild test -project Circadia.xcodeproj -scheme Circadia -destination 'platf
 3. **WeatherKit:** in the Apple Developer portal → Identifiers → your App ID, enable **WeatherKit** under both *Capabilities* and *App Services*. It can take up to about 30 minutes to activate. Until it does, the app falls back to on-device NOAA sun math and shows "cloud cover unknown".
 4. **Background modes:** *Background fetch* and the `com.circadia.app.refresh` BGTask identifier are already in Info.plist. Check that Background Modes → Background fetch is ticked. To test, pause in the debugger and run `e -l objc -- (void)[[BGTaskScheduler sharedScheduler] _simulateLaunchForTaskWithIdentifier:@"com.circadia.app.refresh"]`.
 5. **Time in daylight** needs an Apple Watch on watchOS 10+. Without one, light suggestions rely on manual "Done" taps and the light score component is omitted (the weights renormalise).
+6. **No wearable:** since iOS 18 an iPhone on its own records no sleep in Apple Health. Users without a tracker pick "I'll log it" (onboarding or Settings → Sleep tracking) and confirm each night on Today. Logged nights feed the same pipeline; a night Health already has always wins. See `docs/no-wearable-mode-plan.md`.
 
 Edit `project.yml` rather than the `.xcodeproj` for build settings, Info.plist keys and entitlements, then re-run `xcodegen generate`.
 

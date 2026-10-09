@@ -28,18 +28,31 @@ enum DaylightAnalyzer {
         }
         return DaylightSummary(firstLightAfterWakeMinutes: firstLight, minutesBeforeNoon: beforeNoon, totalMinutes: total)
     }
+
+    /// Sensor light topped up by what the user reported: the larger amount, and the earlier first light.
+    static func merged(_ sensor: DaylightSummary, reported: DaylightSummary) -> DaylightSummary {
+        let first = [sensor.firstLightAfterWakeMinutes, reported.firstLightAfterWakeMinutes].compactMap { $0 }.min()
+        return DaylightSummary(firstLightAfterWakeMinutes: first,
+                               minutesBeforeNoon: max(sensor.minutesBeforeNoon, reported.minutesBeforeNoon),
+                               totalMinutes: max(sensor.totalMinutes, reported.totalMinutes))
+    }
 }
 
 /// Combines nights, daylight and secondary signals into one `DayMetrics` per calendar day.
 enum DayMetricsBuilder {
     static func build(nights: [NightRecord],
                       daylight: [DaylightSample],
+                      reportedLight: [DaylightSample] = [],
                       secondary: [SecondaryMetric: [MetricSample]],
                       from start: Date,
                       through end: Date,
+                      lightKnownDays: Set<Date>? = nil,
+                      lightGoals: (Date) -> MorningLightGoal = { _ in .unknown },
                       calendar: Calendar = .current) -> [DayMetrics] {
         let nightsByDay = Dictionary(nights.map { ($0.wakeDay, $0) }, uniquingKeysWith: { a, _ in a })
-        let hasLightData = !daylight.isEmpty
+        // A sensor records every day, so zero means zero. Self-reported light is only known on days
+        // the user answered; other days are unknown rather than zero.
+        let sensorHasLight = !daylight.isEmpty
         let secondaryByDay: [SecondaryMetric: [Date: Double]] = secondary.mapValues { samples in
             Dictionary(grouping: samples) { calendar.startOfDay(for: $0.date) }
                 .mapValues { group in group.reduce(0) { $0 + $1.value } / Double(group.count) }
@@ -50,19 +63,24 @@ enum DayMetricsBuilder {
         let lastDay = calendar.startOfDay(for: end)
         while day <= lastDay {
             let night = nightsByDay[day]
-            let light = DaylightAnalyzer.summary(samples: daylight, day: day, wake: night?.primary.wake, calendar: calendar)
+            var light = DaylightAnalyzer.summary(samples: daylight, day: day, wake: night?.primary.wake, calendar: calendar)
+            if !reportedLight.isEmpty {
+                let reported = DaylightAnalyzer.summary(samples: reportedLight, day: day, wake: night?.primary.wake, calendar: calendar)
+                light = DaylightAnalyzer.merged(light, reported: reported)
+            }
             result.append(DayMetrics(
                 day: day,
                 isFreeDay: calendar.isDateInWeekend(day),
                 night: night,
                 light: light,
-                hasLightData: hasLightData,
+                hasLightData: lightKnownDays.map { $0.contains(day) } ?? sensorHasLight,
                 onsetMinutes: night.map { ClockMath.signedMinutes($0.primary.onset, calendar: calendar) },
                 wakeMinutes: night.map { ClockMath.signedMinutes($0.primary.wake, calendar: calendar) },
                 midpointMinutes: night.map { ClockMath.signedMinutes($0.primary.midpoint, calendar: calendar) },
                 hrv: secondaryByDay[.hrv]?[day],
                 restingHeartRate: secondaryByDay[.restingHeartRate]?[day],
-                wristTemperature: secondaryByDay[.wristTemperature]?[day]
+                wristTemperature: secondaryByDay[.wristTemperature]?[day],
+                lightGoalMinutes: lightGoals(day).minutes
             ))
             guard let next = calendar.date(byAdding: .day, value: 1, to: day) else { break }
             day = next

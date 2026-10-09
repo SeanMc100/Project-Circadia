@@ -91,6 +91,26 @@ enum ClockMath {
         calendar.startOfDay(for: day).addingTimeInterval(minutes * 60)
     }
 
+    // MARK: - Days
+
+    /// The day `date` belongs to. Days roll over at `CircadianConfig.dayRolloverHour`, so 1 AM is
+    /// still the previous evening.
+    static func activeDay(for date: Date, calendar: Calendar = .current) -> Date {
+        calendar.startOfDay(for: date.addingTimeInterval(-Double(CircadianConfig.dayRolloverHour) * 3600))
+    }
+
+    /// Bedtime as minutes from the start of its evening's day: a bedtime before noon falls after
+    /// midnight, so it belongs to the following calendar day.
+    static func bedtimeMinutes(_ targetBedMinutes: Double) -> Double {
+        targetBedMinutes < 720 ? targetBedMinutes + 1440 : targetBedMinutes
+    }
+
+    /// "yyyy-MM-dd" for `day`: the per-day part of stored ids and keys.
+    static func dayKey(_ day: Date, calendar: Calendar = .current) -> String {
+        let c = calendar.dateComponents([.year, .month, .day], from: day)
+        return String(format: "%04d-%02d-%02d", c.year ?? 0, c.month ?? 0, c.day ?? 0)
+    }
+
     // MARK: - Formatting
 
     private static let timeFormatter: DateFormatter = {

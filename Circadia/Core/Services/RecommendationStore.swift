@@ -52,9 +52,12 @@ final class RecommendationStore {
         var newlyFollowed: [RecommendationRecord] = []
         for record in records(on: day) where record.status == .pending {
             if hasDaylightData, record.criteriaRaw == "outdoorLight",
-               let start = record.windowStart, let end = record.windowEnd, let required = record.requiredMinutes {
-                let logged = DaylightAnalyzer.minutes(of: daylight, in: DateInterval(start: start, end: min(end, now)))
-                if logged >= required * CircadianConfig.lightFollowedFraction {
+               let start = record.windowStart, let end = record.windowEnd, let required = record.requiredMinutes,
+               now > start { // a window that hasn't opened yet would make a reversed DateInterval (traps)
+                // Morning light is judged like the score: everything before the window closes counts.
+                let from = record.kind == .morningLight ? Calendar.current.startOfDay(for: start) : start
+                let logged = DaylightAnalyzer.minutes(of: daylight, in: DateInterval(start: from, end: min(end, now)))
+                if MorningLightGoal.credited(logged) >= required {
                     record.status = .followed
                     record.detection = .automatic
                     record.completedAt = now
@@ -78,6 +81,27 @@ final class RecommendationStore {
         save()
     }
 
+    /// Puts a checked-off record back to pending (undo).
+    func reopen(id: String) {
+        guard let record = record(id: id) else { return }
+        record.status = .pending
+        record.detection = nil
+        record.completedAt = nil
+        save()
+    }
+
+    /// Records followed on `day`, earliest first.
+    func completed(on day: Date) -> [CompletedRecommendation] {
+        records(on: day)
+            .filter { $0.status == .followed && $0.kind != .maintenance }
+            .compactMap { record in
+                guard let kind = record.kind else { return nil }
+                return CompletedRecommendation(id: record.id, kind: kind, completedAt: record.completedAt ?? record.createdAt,
+                                               detectedAutomatically: record.detection == .automatic)
+            }
+            .sorted { $0.completedAt < $1.completedAt }
+    }
+
     /// Fills next-night outcomes and judges wake-time anchors once the night is known.
     func fillOutcomes(nights: [NightRecord], calendar: Calendar = .current) {
         let byDay = Dictionary(nights.map { ($0.wakeDay, $0) }, uniquingKeysWith: { a, _ in a })
@@ -90,7 +114,7 @@ final class RecommendationStore {
             }
             if record.criteriaRaw == "wakeNear", record.status == .pending,
                let start = record.windowStart, let end = record.windowEnd {
-                record.status = (start...end).contains(night.primary.wake) ? .followed : .expired
+                record.status = start <= end && (start...end).contains(night.primary.wake) ? .followed : .expired
                 record.detection = .automatic
                 record.completedAt = night.primary.wake
             }
@@ -105,8 +129,29 @@ final class RecommendationStore {
         }
     }
 
+    // MARK: - Habit check-ins
+
+    func checkIns(on day: Date) -> [HabitCheckIn] {
+        let descriptor = FetchDescriptor<HabitCheckIn>(predicate: #Predicate { $0.day == day })
+        return (try? context.fetch(descriptor)) ?? []
+    }
+
+    func recordCheckIn(habit: HabitKey, day: Date, followed: Bool?, at date: Date, calendar: Calendar = .current) {
+        let id = HabitCheckIn.id(habit: habit, day: day, calendar: calendar)
+        var descriptor = FetchDescriptor<HabitCheckIn>(predicate: #Predicate { $0.id == id })
+        descriptor.fetchLimit = 1
+        if let existing = try? context.fetch(descriptor).first {
+            existing.followed = followed
+            existing.answeredAt = date
+        } else {
+            context.insert(HabitCheckIn(habit: habit, day: day, followed: followed, answeredAt: date, calendar: calendar))
+        }
+        save()
+    }
+
     func deleteAll() {
         try? context.delete(model: RecommendationRecord.self)
+        try? context.delete(model: HabitCheckIn.self)
         save()
     }
 

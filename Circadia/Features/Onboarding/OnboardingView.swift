@@ -1,22 +1,36 @@
 import SwiftUI
 
-/// Five steps. Each permission is requested only on the step that explains its value.
+/// Seven steps either way: wearable users connect Apple Health, phone-only users answer
+/// "Your usual sleep" instead. Each permission is requested only on the step that explains its value.
 struct OnboardingView: View {
     enum Step: Int, CaseIterable {
-        case welcome, health, location, schedule, notifications
+        case welcome, tracker, health, usualSleep, location, schedule, habits, notifications
     }
 
     @Environment(AppModel.self) private var app
     @Environment(\.skyPhase) private var phase
     @State private var step: Step = .welcome
     @State private var isWorking = false
+    @State private var usual: UsualSleep?
+
+    /// The steps this user sees: phone-only users skip Health; wearable users skip usual sleep.
+    private var steps: [Step] {
+        Step.allCases.filter { step in
+            switch step {
+            case .health: app.settings.trackingMode == .wearable
+            case .usualSleep: app.settings.trackingMode == .phoneOnly
+            default: true
+            }
+        }
+    }
 
     var body: some View {
         VStack(spacing: 0) {
-            ProgressView(value: Double(step.rawValue + 1), total: Double(Step.allCases.count))
+            let index = (steps.firstIndex(of: step) ?? 0) + 1
+            ProgressView(value: Double(index), total: Double(steps.count))
                 .padding(.horizontal, 24)
                 .padding(.top, 12)
-                .accessibilityLabel("Step \(step.rawValue + 1) of \(Step.allCases.count)")
+                .accessibilityLabel("Step \(index) of \(steps.count)")
 
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
@@ -39,32 +53,45 @@ struct OnboardingView: View {
     private var content: some View {
         switch step {
         case .welcome:
-            hero("sun.horizon", "Circadia", "A coach for your body clock: not just a tracker.")
-            point("waveform.path.ecg", "Sense", "Estimates where your rhythm sits from your sleep timing, daylight and consistency, compared with your own baseline.")
-            point("clock.badge.checkmark", "Prescribe", "Suggests what to do and when: \"It's overcast and you have until 8:30. Go outside for about 20 minutes.\"")
-            point("lightbulb", "Explain", "Every suggestion comes with the mechanism behind it, at the moment it matters.")
-            Card { WellnessNote() }
+            hero("sun.horizon", "Circadia", "A coach for your body clock.")
+            point("waveform.path.ecg", "Sense", "Estimates your rhythm from sleep timing and daylight, using a wearable or a quick morning log.")
+            point("clock.badge.checkmark", "Prescribe", "Tells you what to do and when.")
+            point("lightbulb", "Explain", "Shows the reason behind each suggestion.")
+        case .tracker:
+            hero("applewatch.and.arrow.forward", "Do you track your sleep?", "Circadia works either way.")
+            point("applewatch", "With a wearable or sleep app", "Sleep and outdoor light are read from Apple Health automatically.")
+            point("square.and.pencil", "Without one", "Each morning, confirm roughly when you slept. It's pre-filled, so it usually takes one tap.")
         case .health:
             hero("heart.text.square", "Apple Health", "Circadia reads, never writes.")
-            point("bed.double", "Sleep", "When you fall asleep and wake: the core of the estimate.")
-            point("sun.max", "Time in daylight", "Outdoor light from Apple Watch, so light suggestions can confirm themselves.")
-            point("waveform", "HRV, resting heart rate, wrist temperature", "Shown in Trends for context only.")
-            Text("Everything stays on this iPhone. You can change access any time in the Health app.")
+            point("bed.double", "Sleep", "When you fall asleep and wake.")
+            point("sun.max", "Time in daylight", "Outdoor light from Apple Watch.")
+            point("waveform", "Heart and temperature", "Shown in Trends for context.")
+            Text("Everything stays on this iPhone.")
                 .font(.footnote).foregroundStyle(.secondary)
             if app.settings.useMockData {
-                Label("Demo data is on, so the app works without Health. You can still connect now.", systemImage: "testtube.2")
+                Label("Demo data is on. You can still connect.", systemImage: "testtube.2")
                     .font(.footnote).foregroundStyle(.secondary)
             }
+        case .usualSleep:
+            hero("moon.zzz", "Your usual sleep", "Roughly when do you fall asleep and wake up? Your estimate can start from day one instead of after a week of logging.")
+            Card {
+                UsualSleepEditor(usual: usualBinding)
+            }
+            Text("These are the core questions of the Munich ChronoType Questionnaire, a standard research survey.")
+                .font(.footnote).foregroundStyle(.secondary)
         case .location:
-            hero("location", "Local sunrise and sky", "Approximate location gives local sunrise, sunset and cloud cover, so light suggestions match your actual sky.")
-            point("airplane", "Travel", "It also notices time-zone changes and builds a gradual shift plan.")
-            point("location.slash", "Prefer not to?", "Skip it. Circadia estimates sun times from your time zone and won't know cloud cover.")
+            hero("location", "Local sunrise and sky", "Approximate location gives your local sun times and sky.")
+            point("airplane", "Travel", "Also spots time-zone changes.")
+            point("location.slash", "Prefer not to?", "Skip it and Circadia uses your time zone.")
         case .schedule:
             hero("alarm", "Your targets", "When do you want to wake and go to bed on a typical day?")
             scheduleCard
+        case .habits:
+            hero("checklist", "Which of these do you already do?", "Ranked by evidence, with times based on your schedule. Tap \u{24D8} to see the science.")
+            HabitPickerList()
         case .notifications:
-            hero("bell.badge", "Timely nudges", "Up to \(CircadianConfig.maxNudgesPerDay) a day: morning light, wind-down and caffeine cutoff. Never during quiet hours, and if you dismiss a kind twice in a row, Circadia backs off.")
-            point("moon", "Quiet hours", "\(ClockMath.clockString(app.settings.quietStartMinutes)) to \(ClockMath.clockString(app.settings.quietEndMinutes)), adjustable in Settings.")
+            hero("bell.badge", "Timely nudges", "Up to \(CircadianConfig.maxNudgesPerDay) a day, never during quiet hours.")
+            point("moon", "Quiet hours", "\(ClockMath.clockString(app.settings.quietStartMinutes)) to \(ClockMath.clockString(app.settings.quietEndMinutes)).")
         }
     }
 
@@ -83,8 +110,6 @@ struct OnboardingView: View {
                 Label("Suggested from your recent sleep", systemImage: "sparkles")
                     .font(.footnote).foregroundStyle(.secondary)
             }
-            Text("A steady wake time matters most. You can change these later.")
-                .font(.footnote).foregroundStyle(.secondary)
         }
     }
 
@@ -96,12 +121,22 @@ struct OnboardingView: View {
             switch step {
             case .welcome:
                 primary("Get started") { advance() }
+            case .tracker:
+                choice("Apple Watch", systemImage: "applewatch") { chooseTracking(.wearable) }
+                choice("Another tracker or sleep app", systemImage: "circle.dashed") { chooseTracking(.wearable) }
+                choice("No, I'll log my sleep", systemImage: "square.and.pencil") { chooseTracking(.phoneOnly) }
             case .health:
                 primary("Connect Apple Health") {
                     await app.connectHealth()
                     advance()
                 }
                 secondary("Not now") { advance() }
+            case .usualSleep:
+                primary("Continue") {
+                    saveUsualSleep()
+                    advance()
+                }
+                secondary("Skip") { advance() }
             case .location:
                 primary("Allow approximate location") {
                     await app.requestLocation()
@@ -114,6 +149,11 @@ struct OnboardingView: View {
             case .schedule:
                 primary("Continue") {
                     app.settings.targetsAreCustom = true
+                    advance()
+                }
+            case .habits:
+                primary("Continue") {
+                    if app.settings.habitsChosenAt == nil { app.settings.habitsChosenAt = Date() }
                     advance()
                 }
             case .notifications:
@@ -149,8 +189,39 @@ struct OnboardingView: View {
         }
     }
 
+    private func choice(_ title: String, systemImage: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Label(title, systemImage: systemImage)
+                .font(.headline)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.vertical, 6)
+        }
+        .buttonStyle(.bordered)
+    }
+
+    /// Phone-only users skip the Health step; they can still connect later in Settings.
+    private func chooseTracking(_ mode: TrackingMode) {
+        app.setTrackingMode(mode)
+        advance()
+    }
+
     private func advance() {
-        if let next = Step(rawValue: step.rawValue + 1) { step = next }
+        if let index = steps.firstIndex(of: step), index + 1 < steps.count { step = steps[index + 1] }
+    }
+
+    private var usualBinding: Binding<UsualSleep> {
+        Binding(get: {
+            usual ?? app.settings.usualSleep
+                ?? .defaults(targetBedMinutes: app.settings.targetBedMinutes, targetWakeMinutes: app.settings.targetWakeMinutes)
+        }, set: { usual = $0 })
+    }
+
+    /// Saves the answers and starts the targets from the workday times (the next step shows them).
+    private func saveUsualSleep() {
+        let answers = usualBinding.wrappedValue
+        app.settings.usualSleep = answers
+        app.settings.targetBedMinutes = answers.workdayOnset
+        app.settings.targetWakeMinutes = answers.workdayWake
     }
 
     private func finish() {

@@ -25,11 +25,14 @@ enum NotificationPlanner {
         var backedOff: [RecommendationKind]
     }
 
+    /// - Parameter reservedPerDay: slots already taken on a day (keyed by start of day), e.g. by
+    ///   the "Log last night?" reminder, so the daily cap still holds.
     static func plan(recommendations: [Recommendation],
                      now: Date,
                      calendar: Calendar = .current,
                      preferences: NotificationPreferences,
-                     consecutiveDismissals: [RecommendationKind: Int]) -> Plan {
+                     consecutiveDismissals: [RecommendationKind: Int],
+                     reservedPerDay: [Date: Int] = [:]) -> Plan {
         var backedOff: Set<RecommendationKind> = []
         var candidates: [(Recommendation, Date)] = []
         var seen: Set<String> = []
@@ -49,13 +52,13 @@ enum NotificationPlanner {
         // Cap per calendar day, keeping the most important kinds.
         let byDay = Dictionary(grouping: candidates) { calendar.startOfDay(for: $0.1) }
         var nudges: [PlannedNudge] = []
-        for (_, dayCandidates) in byDay {
+        for (day, dayCandidates) in byDay {
             let chosen = dayCandidates
                 .sorted { ($0.0.kind.priority, $0.1) < ($1.0.kind.priority, $1.1) }
-                .prefix(preferences.maxPerDay)
+                .prefix(max(0, preferences.maxPerDay - (reservedPerDay[day] ?? 0)))
             nudges += chosen.map { rec, fire in
                 PlannedNudge(recommendationID: rec.id, kind: rec.kind, fireDate: fire,
-                             title: rec.title, body: notificationBody(for: rec))
+                             title: rec.nudgeTitle ?? rec.title, body: rec.nudgeBody ?? notificationBody(for: rec))
             }
         }
         return Plan(nudges: nudges.sorted { $0.fireDate < $1.fireDate },

@@ -19,6 +19,11 @@ struct RootView: View {
                     .environment(\.skyPhase, phase)
                     .tint(phase.palette.accent)
             }
+            .fullScreenCover(isPresented: $app.showRecap) {
+                MorningRecapView()
+                    .environment(\.skyPhase, phase)
+                    .tint(phase.palette.accent)
+            }
             .environment(\.skyPhase, phase)
             .tint(phase.palette.accent)
         }

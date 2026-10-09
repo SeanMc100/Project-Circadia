@@ -52,7 +52,7 @@ enum InsightsEngine {
         if days.contains(where: \.hasLightData) {
             // Early outdoor light vs not.
             var early: [Double] = [], notEarly: [Double] = []
-            for d in days where d.night != nil {
+            for d in days where d.night != nil && d.hasLightData {
                 guard let onset = nextOnset(d.day) else { continue }
                 if let first = d.light.firstLightAfterWakeMinutes, first <= CircadianConfig.earlyLightThresholdMinutes {
                     early.append(onset)
@@ -69,15 +69,14 @@ enum InsightsEngine {
 
             // Enough light before noon vs not.
             var enough: [Double] = [], notEnough: [Double] = []
-            for d in days {
+            for d in days where d.hasLightData {
                 guard let onset = nextOnset(d.day) else { continue }
-                if d.light.minutesBeforeNoon >= CircadianConfig.morningLightTargetMinutes { enough.append(onset) } else { notEnough.append(onset) }
+                if d.metLightGoal { enough.append(onset) } else { notEnough.append(onset) }
             }
-            let target = Int(CircadianConfig.morningLightTargetMinutes)
             if let i = onsetInsight(id: "lightAmount", withGroup: enough, withoutGroup: notEnough,
-                                    condition: "you logged \(target)+ minutes outdoors before noon",
+                                    condition: "you met the morning light goal (outdoors before noon)",
                                     favorableHeadline: "More morning light, earlier sleep",
-                                    groupNames: ("with \(target)+ min", "with less"), mechanism: .lightAndSCN) {
+                                    groupNames: ("goal met", "goal missed"), mechanism: .lightAndSCN) {
                 insights.append(i)
             }
         }
@@ -112,7 +111,7 @@ enum InsightsEngine {
         guard let medianA = ClockMath.median(Array(unwrapped.prefix(a.count))),
               let medianB = ClockMath.median(Array(unwrapped.suffix(b.count))) else { return nil }
         let diff = medianB - medianA
-        let note = "Based on \(a.count) days \(groupNames.0) vs \(b.count) \(groupNames.1). An association in your own data, not proof of cause."
+        let note = "Based on \(a.count) days \(groupNames.0) vs \(b.count) \(groupNames.1)."
         let threshold = CircadianConfig.insightMeaningfulDifferenceMinutes
         let amount = ClockMath.durationString(diff)
 
@@ -148,7 +147,7 @@ enum InsightsEngine {
         let minimum = CircadianConfig.insightsMinimumPerGroup
         guard onTarget.count >= minimum, offTarget.count >= minimum,
               let a = ClockMath.median(onTarget), let b = ClockMath.median(offTarget) else { return nil }
-        let note = "Based on \(onTarget.count) on-target wake days vs \(offTarget.count) others. An association in your own data, not proof of cause."
+        let note = "Based on \(onTarget.count) on-target wake days vs \(offTarget.count) others."
         let tol = Int(CircadianConfig.wakeOnTargetToleranceMinutes)
         let detail = "After days you woke within \(tol) minutes of your \(ClockMath.clockString(targetWakeMinutes)) target, your bedtime that night was typically within \(Int(a.rounded())) min of your usual, vs \(Int(b.rounded())) min on other days."
         let tone: Insight.Tone = b - a >= CircadianConfig.insightMeaningfulDifferenceMinutes ? .favorable
