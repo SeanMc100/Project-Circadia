@@ -96,6 +96,8 @@ struct EmptyStateView: View {
     let title: String
     let message: String
     var progress: Double?
+    var actionTitle: String?
+    var action: (() -> Void)?
 
     var body: some View {
         Card {
@@ -106,6 +108,11 @@ struct EmptyStateView: View {
                     Text(message).font(.subheadline).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                     if let progress {
                         ProgressView(value: progress).padding(.top, 4)
+                    }
+                    if let actionTitle, let action {
+                        Button(actionTitle, action: action)
+                            .font(.subheadline.weight(.medium))
+                            .padding(.top, 4)
                     }
                 }
             }

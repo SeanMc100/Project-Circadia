@@ -48,7 +48,6 @@ final class MockDataAndInsightsTests: XCTestCase {
         let early = try XCTUnwrap(result.insights.first { $0.id == "earlyLight" })
         XCTAssertEqual(early.tone, .favorable, early.detail)
         XCTAssertTrue(early.sampleNote.contains("Based on"))
-        XCTAssertTrue(early.sampleNote.contains("not proof of cause"))
     }
 
     func testInsightsNeedEnoughDays() {

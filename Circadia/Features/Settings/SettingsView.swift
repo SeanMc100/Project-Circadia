@@ -7,13 +7,16 @@ struct SettingsView: View {
     @Environment(\.openURL) private var openURL
     @State private var confirmDelete = false
     @State private var showAdvanced = false
+    @State private var showExplainer = false
 
     var body: some View {
         @Bindable var settings = app.settings
         NavigationStack {
             Form {
                 scheduleSection(settings)
+                habitsSection(settings)
                 notificationSection(settings)
+                trackingSection(settings)
                 dataSection(settings)
 
                 Section {
@@ -28,6 +31,7 @@ struct SettingsView: View {
                 }
 
                 Section("About") {
+                    Button("How Circadia works") { showExplainer = true }
                     NavigationLink("How this is calculated") { HowCalculatedView() }
                     WellnessNote()
                 }
@@ -58,6 +62,7 @@ struct SettingsView: View {
             } message: {
                 Text("This can't be undone. You'll go through setup again.")
             }
+            .fullScreenCover(isPresented: $showExplainer) { ExplainerView() }
             .task { await app.refreshNotificationStatus() }
         }
     }
@@ -91,12 +96,30 @@ struct SettingsView: View {
         }
     }
 
+    private func habitsSection(_ settings: AppSettings) -> some View {
+        let starting = settings.habitStatuses.values.filter { $0 == .wantToStart }.count
+        let doing = settings.habitStatuses.values.filter { $0 == .alreadyDo }.count
+        return Section {
+            NavigationLink {
+                HabitsSettingsView()
+            } label: {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Habits")
+                    Text("\(starting) starting · \(doing) already doing")
+                        .font(.caption).foregroundStyle(.secondary)
+                }
+            }
+        } footer: {
+            Text("Only habits you're starting get nudges and morning check-in questions.")
+        }
+    }
+
     private func notificationSection(_ settings: AppSettings) -> some View {
         Section {
             if !app.notificationsAuthorized {
                 Button("Allow notifications") { Task { await app.requestNotificationPermission() } }
             }
-            ForEach(RecommendationKind.notifiableKinds) { kind in
+            ForEach(RecommendationKind.notifiableKinds.filter(HabitCatalog.nudgeKinds(for: settings.habitStatuses).contains)) { kind in
                 Toggle(isOn: Binding(
                     get: { settings.enabledNudgeKinds.contains(kind) },
                     set: { on in
@@ -126,12 +149,47 @@ struct SettingsView: View {
         }
     }
 
+    private func trackingSection(_ settings: AppSettings) -> some View {
+        Section {
+            Picker("Sleep data", selection: Binding(get: { settings.trackingMode }, set: { app.setTrackingMode($0) })) {
+                ForEach(TrackingMode.allCases) { mode in
+                    Text(mode.title).tag(mode)
+                }
+            }
+            if settings.trackingMode == .phoneOnly {
+                NavigationLink("Usual sleep times") {
+                    UsualSleepSettingsView(initial: settings.usualSleep
+                        ?? .defaults(targetBedMinutes: settings.targetBedMinutes, targetWakeMinutes: settings.targetWakeMinutes))
+                }
+                Toggle(isOn: Binding(get: { settings.sleepLogReminderEnabled }, set: { settings.sleepLogReminderEnabled = $0 })) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Morning reminder")
+                        Text("\"Log last night?\" about 30 min after you usually wake. Confirm from the notification without opening the app.")
+                            .font(.caption).foregroundStyle(.secondary)
+                    }
+                }
+            }
+        } header: {
+            Text("Sleep tracking")
+        } footer: {
+            switch settings.trackingMode {
+            case .wearable:
+                Text("Sleep and outdoor light are read from Apple Health: an Apple Watch, another tracker or a sleep app.")
+            case .phoneOnly:
+                Text("Log each night on Today. Light suggestions rely on your Done taps. If Apple Health already has a night from a tracker or sleep app, that's used instead of your log.")
+            }
+        }
+    }
+
     private func dataSection(_ settings: AppSettings) -> some View {
         Section {
             Toggle(isOn: Binding(get: { settings.useMockData }, set: { app.setMockData($0) })) {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Demo data")
-                    Text("\(CircadianConfig.mockDays) days of synthetic sleep and light data").font(.caption).foregroundStyle(.secondary)
+                    Text(settings.trackingMode == .phoneOnly
+                         ? "\(CircadianConfig.mockDays) days of synthetic sleep-log entries"
+                         : "\(CircadianConfig.mockDays) days of synthetic sleep and light data")
+                        .font(.caption).foregroundStyle(.secondary)
                 }
             }
             if settings.useMockData {
@@ -146,7 +204,7 @@ struct SettingsView: View {
                 Button("I've adapted. Set current location as home") { app.markTravelAdapted() }
             }
 
-            statusRow("Apple Health", app.settings.useMockData ? HealthAuthorizationState.demo.label : app.healthAuthorization.label)
+            statusRow("Apple Health", healthStatus(settings))
             if !settings.useMockData && app.healthAuthorization == .notRequested {
                 Button("Connect Apple Health") { Task { await app.connectHealth() } }
             }
@@ -155,6 +213,30 @@ struct SettingsView: View {
                 Button("Allow location") { Task { await app.requestLocation() } }
             }
             statusRow("Sun & weather", app.sunWeather?.source.label ?? "Not loaded")
+            if let error = app.weatherError {
+                Text("Apple Weather failed: \(error)")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+            if let goal = settings.morningLightGoal(for: app.activeDay) {
+                statusRow("Today's light goal", "\(Int(goal.minutes)) min (\(goal.sky.label.lowercased()))")
+            }
+            if app.canSenseLight {
+                DisclosureGroup("Today's Apple Watch light readings") {
+                    if app.todayDaylight.isEmpty {
+                        Text("None yet today").font(.footnote).foregroundStyle(.secondary)
+                    }
+                    ForEach(app.todayDaylight, id: \.self) { sample in
+                        LabeledContent("\(ClockMath.timeString(sample.start))–\(ClockMath.timeString(sample.end))",
+                                       value: "\(String(format: "%.1f", sample.minutes)) min")
+                            .font(.footnote)
+                    }
+                    if !app.todayDaylight.isEmpty {
+                        LabeledContent("Total", value: "\(String(format: "%.1f", app.todayDaylight.reduce(0) { $0 + $1.minutes })) min")
+                            .font(.footnote.weight(.semibold))
+                    }
+                }
+            }
             statusRow("Notifications", app.notificationsAuthorized ? "Allowed" : "Off")
 
             Button("Open iOS Settings for Circadia") {
@@ -171,6 +253,14 @@ struct SettingsView: View {
     }
 
     // MARK: - Helpers
+
+    private func healthStatus(_ settings: AppSettings) -> String {
+        if settings.useMockData { return HealthAuthorizationState.demo.label }
+        if settings.trackingMode == .phoneOnly && app.healthAuthorization == .notRequested {
+            return "Optional. Connect it if a sleep app saves your nights to Health"
+        }
+        return app.healthAuthorization.label
+    }
 
     private func statusRow(_ title: String, _ value: String) -> some View {
         VStack(alignment: .leading, spacing: 2) {

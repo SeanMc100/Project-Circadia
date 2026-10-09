@@ -60,8 +60,18 @@ final class RecommendationEngineTests: XCTestCase {
     func testMorningLightReducedByLightAlreadyLogged() throws {
         let ctx = context(cloudCover: 0.9, light: DaylightSummary(firstLightAfterWakeMinutes: 5, minutesBeforeNoon: 10, totalMinutes: 10))
         let rec = try XCTUnwrap(RecommendationEngine.recommendations(for: ctx).first { $0.kind == .morningLight })
+        // The card asks for what's left; success is judged on the whole overcast goal, so the
+        // 10 minutes already logged aren't counted twice.
+        XCTAssertTrue(rec.title.contains("15 minutes"), rec.title)
         guard case .outdoorLight(let minutes, _) = rec.successCriteria else { return XCTFail() }
-        XCTAssertEqual(minutes, 15)
+        XCTAssertEqual(minutes, 25)
+    }
+
+    func testMorningLightUsesStoredGoalAndRoundsWatchMinutes() {
+        // Clear-sky goal of 10; the Watch saw 8 minutes, which rounds to 10, so the goal is met.
+        var ctx = context(cloudCover: 0.9, light: DaylightSummary(firstLightAfterWakeMinutes: 5, minutesBeforeNoon: 8, totalMinutes: 8))
+        ctx.morningGoal = MorningLightGoal(sky: .clear)
+        XCTAssertFalse(kinds(ctx).contains(.morningLight))
     }
 
     func testCompletedKindIsNotRepeated() {
@@ -144,10 +154,10 @@ final class RecommendationEngineTests: XCTestCase {
     // MARK: Other kinds
 
     func testWindDownTimedFromBedtime() throws {
-        let soon = try XCTUnwrap(RecommendationEngine.recommendations(for: context(now: TestCal.date(2026, 10, 6, 20, 0))).first { $0.kind == .windDown })
-        XCTAssertEqual(soon.window?.start, TestCal.date(2026, 10, 6, 20, 30))
+        let soon = try XCTUnwrap(RecommendationEngine.recommendations(for: context(now: TestCal.date(2026, 10, 6, 19, 30))).first { $0.kind == .windDown })
+        XCTAssertEqual(soon.window?.start, TestCal.date(2026, 10, 6, 20, 0), "3 h before an 11 PM bedtime")
         XCTAssertEqual(soon.urgency, .soon)
-        let now = try XCTUnwrap(RecommendationEngine.recommendations(for: context(now: TestCal.date(2026, 10, 6, 21, 0))).first { $0.kind == .windDown })
+        let now = try XCTUnwrap(RecommendationEngine.recommendations(for: context(now: TestCal.date(2026, 10, 6, 20, 30))).first { $0.kind == .windDown })
         XCTAssertEqual(now.urgency, .now)
         XCTAssertFalse(kinds(context(now: TestCal.date(2026, 10, 6, 12, 0))).contains(.windDown))
     }
@@ -182,6 +192,109 @@ final class RecommendationEngineTests: XCTestCase {
         XCTAssertEqual(recs.last?.title, "5 nights in rhythm")
         ctx.alignmentScore = 60
         XCTAssertFalse(kinds(ctx).contains(.maintenance))
+    }
+
+    // MARK: Before sunrise
+
+    func testWakingBeforeSunriseSuggestsBrightIndoorLightFirst() throws {
+        var ctx = context(now: TestCal.date(2026, 10, 6, 6, 10), cloudCover: 0.1)
+        ctx.wakeToday = TestCal.date(2026, 10, 6, 6, 0) // sunrise 7:05
+        let rec = try XCTUnwrap(RecommendationEngine.recommendations(for: ctx).first { $0.kind == .morningLight })
+        XCTAssertEqual(rec.urgency, .now)
+        XCTAssertTrue(rec.title.contains("before sunrise"))
+        XCTAssertTrue(rec.body.contains("light box"))
+        XCTAssertTrue(rec.body.contains("check with a doctor"), "light box safety caveat")
+        XCTAssertEqual(rec.trackingWindow?.start, TestCal.date(2026, 10, 6, 7, 5), "outdoor credit still starts at sunrise")
+        XCTAssertEqual(rec.nudgeDate, TestCal.date(2026, 10, 6, 6, 0))
+        // Once the sun is up, the normal "go outside now" card takes over.
+        ctx.now = TestCal.date(2026, 10, 6, 7, 10)
+        let after = try XCTUnwrap(RecommendationEngine.recommendations(for: ctx).first { $0.kind == .morningLight })
+        XCTAssertTrue(after.title.hasPrefix("Go outside now"))
+    }
+
+    func testWakingJustBeforeSunriseUsesNormalCard() throws {
+        // Default context wakes at 7:00 with sunrise at 7:05: too close to bother with indoor light.
+        let rec = try XCTUnwrap(RecommendationEngine.dailyPlan(for: context(now: TestCal.date(2026, 10, 6, 6, 50))).first { $0.kind == .morningLight })
+        XCTAssertFalse(rec.title.contains("before sunrise"))
+    }
+
+    // MARK: Habits
+
+    func testHabitsSetToNotForMeProduceNoCards() {
+        var ctx = context(now: TestCal.date(2026, 10, 6, 10, 0))
+        ctx.habits = [.morningLight: .notForMe, .caffeineCutoff: .notForMe, .eveningDim: .notForMe]
+        let plan = RecommendationEngine.dailyPlan(for: ctx).map(\.kind)
+        XCTAssertFalse(plan.contains(.morningLight))
+        XCTAssertFalse(plan.contains(.caffeineCutoff))
+        XCTAssertFalse(plan.contains(.windDown))
+        ctx.now = TestCal.date(2026, 10, 6, 14, 0)
+        XCTAssertFalse(kinds(ctx).contains(.lateDayLight), "afternoon light belongs to the morning light habit")
+    }
+
+    func testAlreadyDoHabitsStillShowCards() {
+        var ctx = context()
+        ctx.habits = [.morningLight: .alreadyDo]
+        XCTAssertTrue(kinds(ctx).contains(.morningLight))
+    }
+
+    func testEveningPlanListsActiveEveningHabits() throws {
+        var ctx = context(now: TestCal.date(2026, 10, 6, 20, 15))
+        ctx.habits = [.eveningDim: .wantToStart, .alcoholCutoff: .wantToStart, .screensDown: .alreadyDo]
+        let rec = try XCTUnwrap(RecommendationEngine.recommendations(for: ctx).first { $0.kind == .windDown })
+        XCTAssertEqual(rec.title, "Start dimming the lights")
+        XCTAssertEqual(rec.steps.count, 2)
+        XCTAssertTrue(rec.steps[0].hasPrefix("Last drink by"))
+        XCTAssertTrue(rec.steps[1].hasPrefix("Screens away by"))
+
+        ctx.habits = [.alcoholCutoff: .wantToStart]
+        let noDim = try XCTUnwrap(RecommendationEngine.recommendations(for: ctx).first { $0.kind == .windDown })
+        XCTAssertEqual(noDim.title, "Tonight's wind-down")
+        XCTAssertEqual(noDim.successCriteria.codeName, "eveningPlan")
+    }
+
+    func testOnlyHabitsBeingStartedNudge() {
+        let kinds = HabitCatalog.nudgeKinds(for: [.morningLight: .wantToStart, .caffeineCutoff: .alreadyDo, .screensDown: .wantToStart])
+        XCTAssertEqual(kinds, [.travelShift, .morningLight, .lateDayLight, .windDown])
+    }
+
+    func testHabitTimesArePersonalised() {
+        let t = HabitTiming(wakeMinutes: 420, bedMinutes: 1380, caffeineCutoffHours: 9)
+        XCTAssertEqual(HabitKey.caffeineCutoff.rule(t), "Last caffeine by \(ClockMath.clockString(14 * 60))")
+        XCTAssertEqual(HabitKey.eveningDim.checkInPrompt(t), "Lights dimmed from \(ClockMath.clockString(20 * 60))")
+        // Bedtime after midnight wraps correctly.
+        let late = HabitTiming(wakeMinutes: 540, bedMinutes: 60)
+        XCTAssertEqual(HabitKey.alcoholCutoff.eveningStep(late), "Last drink by \(ClockMath.clockString(22 * 60))")
+    }
+
+    func testEveryHabitHasEvidence() {
+        XCTAssertEqual(HabitCatalog.ranked.first?.tier, .core)
+        XCTAssertEqual(HabitCatalog.ranked.last?.tier, .niche)
+        for habit in HabitKey.allCases {
+            XCTAssertFalse(habit.why.isEmpty, habit.rawValue)
+            XCTAssertFalse(habit.sources.isEmpty, habit.rawValue)
+        }
+    }
+
+    func testCheckInDueAfterWakeAndOnlyForNightsAfterSetup() {
+        let t = HabitTiming(wakeMinutes: 420, bedMinutes: 1380)
+        let today = TestCal.day(2026, 10, 7)
+        let chosen = TestCal.date(2026, 10, 1, 12)
+        func due(_ now: Date, wake: Date? = nil, chosenAt: Date? = chosen) -> Date? {
+            HabitCatalog.checkInDay(now: now, activeDay: today, wakeToday: wake, timing: t, habitsChosenAt: chosenAt, calendar: cal)
+        }
+        XCTAssertNil(due(TestCal.date(2026, 10, 7, 6, 30)), "not before wake")
+        XCTAssertEqual(due(TestCal.date(2026, 10, 7, 6, 30), wake: TestCal.date(2026, 10, 7, 6, 15)), TestCal.day(2026, 10, 6))
+        XCTAssertEqual(due(TestCal.date(2026, 10, 7, 9, 0)), TestCal.day(2026, 10, 6))
+        XCTAssertNil(due(TestCal.date(2026, 10, 7, 17, 0)), "closes in the afternoon")
+        XCTAssertNil(due(TestCal.date(2026, 10, 7, 9, 0), chosenAt: TestCal.date(2026, 10, 6, 21, 0)), "chosen after last night's wind-down")
+        XCTAssertNil(due(TestCal.date(2026, 10, 7, 9, 0), chosenAt: nil))
+    }
+
+    func testCheckInAsksOnlyHabitsBeingStartedThatNeedAnswers() {
+        let t = HabitTiming(wakeMinutes: 420, bedMinutes: 1380)
+        let habits = HabitCatalog.checkInHabits(for: [.morningLight: .wantToStart, .eveningDim: .wantToStart,
+                                                       .alcoholCutoff: .alreadyDo, .darkBedroom: .wantToStart], timing: t)
+        XCTAssertEqual(habits, [.eveningDim, .darkBedroom], "morning light is auto-tracked; already-done habits aren't asked")
     }
 
     func testEveryRecommendationHasMechanismAndStableID() {

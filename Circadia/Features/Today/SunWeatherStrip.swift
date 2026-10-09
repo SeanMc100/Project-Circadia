@@ -5,6 +5,7 @@ struct SunWeatherStrip: View {
     let lightWindowText: String
     @Environment(\.skyPhase) private var phase
     @State private var attributionURL: URL?
+    @State private var showSourceInfo = false
 
     var body: some View {
         Card {
@@ -18,25 +19,32 @@ struct SunWeatherStrip: View {
                     }
                 }
                 Divider()
-                Label(lightWindowText, systemImage: "light.max")
-                    .font(.subheadline.weight(.medium))
-                    .foregroundStyle(phase.palette.accent)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(snapshot.source.label + (snapshot.locationIsEstimated ? " · Location estimated from time zone" : ""))
-                    if snapshot.source == .localSolar {
-                        Text("Cloud cover is unknown without weather data; suggestions assume average skies.")
-                    }
-                    if snapshot.source == .weatherKit {
-                        HStack(spacing: 4) {
-                            Text("Weather data from  Weather.")
-                            if let attributionURL {
-                                Link("Legal", destination: attributionURL)
-                            }
+                HStack {
+                    Label(lightWindowText, systemImage: "light.max")
+                        .font(.subheadline.weight(.medium))
+                        .foregroundStyle(phase.palette.accent)
+                    Spacer()
+                    Button { showSourceInfo = true } label: { Image(systemName: "info.circle") }
+                        .foregroundStyle(.secondary)
+                        .accessibilityLabel("About this data")
+                        .popover(isPresented: $showSourceInfo) {
+                            Text(sourceInfo(snapshot))
+                                .font(.footnote)
+                                .padding()
+                                .frame(maxWidth: 280, alignment: .leading)
+                                .presentationCompactAdaptation(.popover)
+                        }
+                }
+                if snapshot.source == .weatherKit {
+                    HStack(spacing: 4) {
+                        Text("Weather data from  Weather.")
+                        if let attributionURL {
+                            Link("Legal", destination: attributionURL)
                         }
                     }
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
                 }
-                .font(.caption2)
-                .foregroundStyle(.secondary)
             } else {
                 HStack {
                     ProgressView()
@@ -47,6 +55,14 @@ struct SunWeatherStrip: View {
         .task(id: snapshot?.source) {
             if snapshot?.source == .weatherKit { attributionURL = await WeatherKitProvider.attributionLegalURL() }
         }
+    }
+
+    private func sourceInfo(_ s: SunWeatherSnapshot) -> String {
+        var parts = [s.source.label + (s.locationIsEstimated ? ", location estimated from time zone." : ".")]
+        if s.source == .localSolar {
+            parts.append("Cloud cover is unknown without weather data; suggestions assume average skies.")
+        }
+        return parts.joined(separator: " ")
     }
 
     private func skyText(_ s: SunWeatherSnapshot) -> String {

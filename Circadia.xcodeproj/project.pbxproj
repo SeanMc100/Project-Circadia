@@ -7,44 +7,82 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		00D77DAA2DD884489BB1882F /* ExplainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9761FBE05128EB1D7E85D64 /* ExplainerView.swift */; };
 		00FCD18DC2BCF91C138567EF /* HealthDataProviding.swift in Sources */ = {isa = PBXBuildFile; fileRef = A59E8690538AB2384C0B1943 /* HealthDataProviding.swift */; };
+		0251581D8973CD4630337120 /* ExplainerVisuals.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08ABB8BB2E2D8577F6C0C764 /* ExplainerVisuals.swift */; };
+		030B8E7B76091B4E4DBD73A6 /* AlignmentWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = D09998564AF1AFAC8511A7A9 /* AlignmentWidget.swift */; };
 		050C48AA9AE7C80425FA8D67 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B534DDC27DEE1D122CF446C /* Theme.swift */; };
+		0668454E5770FF5FD5F2D904 /* HabitDetailSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 082FA5267EA0AC533BC92C2B /* HabitDetailSheet.swift */; };
+		06D0794089F525BA4830A72C /* MorningRecapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E86E2186A2C9DCEFD50B7540 /* MorningRecapView.swift */; };
 		0817A0EA1784F27E5A45E64F /* CircadianRing.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFE850582DC27AC9BB93C342 /* CircadianRing.swift */; };
 		088B4BB3DE4986613295F0EB /* TrendsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25C709DD84B08BE647F4E298 /* TrendsViewModel.swift */; };
 		0C961AFB56BFF457D75AACD6 /* LearnView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB3C9080A2A6E9A0011EC9B4 /* LearnView.swift */; };
+		10F8177C96BBFA32E17E33F9 /* SelfReportStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14D1533E6AB7BB792CF01A25 /* SelfReportStore.swift */; };
 		19F73BDB39AC7351846C0225 /* NotificationPlanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3792EE7A5CB56A68D871E92E /* NotificationPlanner.swift */; };
+		1EFB602670709562A6D83E5D /* CheckInCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9393075D68F22988C43D4B25 /* CheckInCard.swift */; };
+		218611F4FFDD9AF3D5E0E70C /* SelfReportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62512DB14AE1966B16DF3E50 /* SelfReportTests.swift */; };
 		2FAEF72E8ADEDC42069E30F9 /* CircadianModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F41D3345D2842D29255C553B /* CircadianModel.swift */; };
 		307D5CE156B57ED35F32C998 /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED8B18D86E90459B593A724F /* AppSettings.swift */; };
 		339EF98AEC0520437BC78548 /* SleepSessionBuilderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF81E34329C9629FBC87077C /* SleepSessionBuilderTests.swift */; };
+		33D77790B61C8F5FDEF4E27C /* CircadiaWidgetsBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F038F456651CCF694496FCB /* CircadiaWidgetsBundle.swift */; };
 		34552FBEFF16593221A70272 /* RecommendationEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82CC6B01B1BC27F42B8185AB /* RecommendationEngine.swift */; };
 		37D42A4A847BAC38DA739921 /* SolarCalculatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFE9E04E299EF38C033563A /* SolarCalculatorTests.swift */; };
+		3E8DCC50043642D375DA3C02 /* ScoreTrendsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57BBE5C2A05ACE88C79D0C75 /* ScoreTrendsTests.swift */; };
 		4454BA5FBF38689AB39EBD0E /* PayoffView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6574941D131A05263AF3CEC1 /* PayoffView.swift */; };
 		4718E590E26DFCD08F4CF349 /* CircadianConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB601AD7184D41E401C17B7E /* CircadianConfig.swift */; };
 		4B60080662267AB3E687A27E /* PayoffContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8156ECF128E071A7B0994D9 /* PayoffContent.swift */; };
+		51A5434B342C09D4F5253B9D /* SelfReport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B3D3895D336AAC57DE12846 /* SelfReport.swift */; };
+		59DDCCCB8394509F3F84CD40 /* MorningLightGoal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E80582CD66E3C1142898724 /* MorningLightGoal.swift */; };
+		5BDD6E53B24D894267C07214 /* ScoreForecastTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D0DDB2987094B7BFDB7AB00 /* ScoreForecastTests.swift */; };
 		5C1A3F10589DF7E785A1E80E /* MockDataAndInsightsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1780BB68137BD0CAFEF9D6DF /* MockDataAndInsightsTests.swift */; };
 		5C4353DEE7B8CF5FA1635DB4 /* LocationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BDC68CF69D5F71D27C54C5E /* LocationService.swift */; };
 		5C99ABAE86B420EEB76C888B /* RecommendationEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B3C9DA35EBE1432E277FE75 /* RecommendationEngineTests.swift */; };
+		5D13E66327A2B4744B8B311C /* WidgetStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3956A97B99313A326106C6F /* WidgetStyle.swift */; };
 		5DC57D80F10313BC7311997E /* CircadianModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C872B6FD78B2484E72A02C60 /* CircadianModelTests.swift */; };
+		616596A742D5EF6AFF7E581E /* SleepLogTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 109098A211B1233A6240B90F /* SleepLogTests.swift */; };
+		668324EAB5062416B1CB8CF4 /* ForecastCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A47DC52FA4BF5783BAD0FD94 /* ForecastCard.swift */; };
+		6B13B8CA2AF691B89776514C /* SleepLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 577B73DCD260628311502179 /* SleepLog.swift */; };
 		71A6AEB0555D2BA74A0AA67D /* WeatherKitProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E6B96AE48A0FC68CFF3AB24 /* WeatherKitProvider.swift */; };
 		731EF513CDC8E84F4EDADE1C /* ClockMath.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC9E2D6BDD069FFC9EBD774E /* ClockMath.swift */; };
 		73FC5B47B0D60478D176E98D /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08930BDE77DEFEA3E4B5B5A0 /* AppModel.swift */; };
+		759EC3E69B5CDE664F643163 /* LightMeterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38FC49313F3EA4EF0843CFD0 /* LightMeterTests.swift */; };
+		7846B312472F46F5E8A4514E /* SleepLogCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 656082C72C81D156A567AF4D /* SleepLogCard.swift */; };
 		797A502FFC774D5B323C0346 /* RecommendationStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5FD7E0D20798FA2FF77E9C0 /* RecommendationStore.swift */; };
+		7CCE7572131B1A0CB500C25F /* AdaptiveColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1289136373779233A87497EC /* AdaptiveColor.swift */; };
+		7E40A471F1DE01E8F3FEF986 /* WidgetSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = F100B1F2C140F701B9F035E8 /* WidgetSnapshot.swift */; };
 		85C3B0D2A36F917D9E169EE8 /* TestSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C7F300076106AD89B5D5B65 /* TestSupport.swift */; };
+		8DF3857CB8B4A9C7EBE4B3C4 /* WidgetSnapshotBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = DACE8E6B3C074C06FE9F0A65 /* WidgetSnapshotBuilder.swift */; };
+		8FCB1CFB32B3668CF9309AC3 /* LightCheckView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A913F9AA65B45E750915F24 /* LightCheckView.swift */; };
 		90F9C32380FA0E6D63A8CB1E /* Components.swift in Sources */ = {isa = PBXBuildFile; fileRef = B66CA44E806314F67EA3549B /* Components.swift */; };
+		91A8F21BCE01F5083C19AE4C /* LightMeterCamera.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F9EBB289311B1F85F5D6E7C /* LightMeterCamera.swift */; };
 		950BCBFDE05E05FF5CA2810F /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFDBAC63851EA7522B0DF3AC /* OnboardingView.swift */; };
+		97638AADF8674D34E82D8C16 /* ScoreRecap.swift in Sources */ = {isa = PBXBuildFile; fileRef = E11360AF38635625F88C447D /* ScoreRecap.swift */; };
 		9ABA99FECA5C67BEC7F9DF62 /* DomainTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8EA3EF463AD80697395919D2 /* DomainTypes.swift */; };
+		9B80EFA6A27B0CFB3227DBBB /* CircadiaWidgets.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 711C8F4209F80800D01E8140 /* CircadiaWidgets.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		9ED8E4516F5334A0EFD9BEE2 /* AdaptiveColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1289136373779233A87497EC /* AdaptiveColor.swift */; };
+		A12A42A87B0038332799C2F0 /* RecommendationStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0B81AD11ABC6E37D2B465D2 /* RecommendationStoreTests.swift */; };
 		A498C2FB4DF622C38DFF92E8 /* DayMetricsBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27E64EA6C53712D55EB07104 /* DayMetricsBuilder.swift */; };
 		A7C6AFF13315E1F0DE4E0D05 /* Recommendation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20B9986F85596A4A61F61478 /* Recommendation.swift */; };
+		A865C30D635BEF1A1A9C8BDE /* ScoreForecast.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB6A12FD47CA3A2ED2030555 /* ScoreForecast.swift */; };
 		B2437D339A90F030F38C7014 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E5000B0262AFE0D6B62D19FA /* Assets.xcassets */; };
 		B3BC65384D08A481549C5AC2 /* TodayViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB3BC5DAF2DDE983E4311DED /* TodayViewModel.swift */; };
+		B8669A652A525A4B85B7CAE4 /* ScoreTrends.swift in Sources */ = {isa = PBXBuildFile; fileRef = B225995CA1835B5A711F66FF /* ScoreTrends.swift */; };
 		B891523D83FC2CB36A96922D /* RecommendationCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E0824705D2749071B61CD76 /* RecommendationCard.swift */; };
 		BA89FF7B2BB73F5B4B3C85AE /* SunWeatherStrip.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EF728B0CF0590D2D367A94B /* SunWeatherStrip.swift */; };
+		BBE201D9A55A81B19C369537 /* WidgetSnapshotBuilderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DBCE641BF83369A21AE9300 /* WidgetSnapshotBuilderTests.swift */; };
 		BC0AB831447B47E1694AEF73 /* CircadiaApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = E01A70A2D57F4AEE75B29F86 /* CircadiaApp.swift */; };
+		C2CEFCF77FFD2A3CDAA44171 /* FocusWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 154D46A39403407D079ED2D4 /* FocusWidget.swift */; };
 		C51DFBE55A7C8F0A3337C860 /* TodayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64326E1C38F1BDB71822B872 /* TodayView.swift */; };
+		C6BAD04A1806A622021E8743 /* WidgetSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = F100B1F2C140F701B9F035E8 /* WidgetSnapshot.swift */; };
 		CC6DED62A2BAC5F667B8BFE1 /* HealthKitProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE1C0109D284B0D5A06C92C6 /* HealthKitProvider.swift */; };
 		CCC7EC61869AA6395C3C7403 /* MockHealthDataProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = F520D507D7214A56EFD768FE /* MockHealthDataProvider.swift */; };
+		CD760EF800C38B58B3369472 /* HabitPickerList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A20FFA09333C59216BF76AC /* HabitPickerList.swift */; };
+		D0CBB3D0840CD9CA85C7C659 /* PreviewData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CAA6EBFFF5336FF242BD568 /* PreviewData.swift */; };
 		D1DC6A25A7F562C724C1E76D /* SleepSessionBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5069EBFAAD59D27E0155081D /* SleepSessionBuilder.swift */; };
+		D3CE7BDA0F255B087FAE5A7E /* HabitCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18DA1CB80278D1F92D8A4B4B /* HabitCatalog.swift */; };
 		D571D9A1D8F28D8266928232 /* InsightsEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A41EF3572ED9C0C285DF10C /* InsightsEngine.swift */; };
+		DD2C238DC2CB4560F424DF19 /* LightMeter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 510E7989FF811E05B5E21D4B /* LightMeter.swift */; };
+		DD8BF6C5914455DD75E79E50 /* UsualSleepEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 524F8CD5A4A9B995F481EAB2 /* UsualSleepEditor.swift */; };
 		DEC87E82B919A5AEBEBD5250 /* InsightsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97ACD0268E3A93874CB8B405 /* InsightsView.swift */; };
 		DF650A83B0DAD5CBBCF72A61 /* TrendsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 382F92DECA72DC10F8E7B13E /* TrendsView.swift */; };
 		E61D12E27F5AD821028EA03C /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BC9CC1E27548B011AAEC099 /* SettingsView.swift */; };
@@ -54,6 +92,7 @@
 		F1BD08BA98B37BC59608815E /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8949C6E8B24F8A06A592E66 /* RootView.swift */; };
 		F588E5CB0E01620AEFF26906 /* NotificationPlannerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C704103AFBABDAF3744A3AAB /* NotificationPlannerTests.swift */; };
 		F8845F59CD4A52640245871E /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BAE2845AF00D044DA3DC31FA /* NotificationService.swift */; };
+		FF045A726594E8343A12DDAA /* WidgetBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB89E997EC76DBCDC08327D3 /* WidgetBridge.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -64,40 +103,92 @@
 			remoteGlobalIDString = 7987DFDAB9D7AA08976322BD;
 			remoteInfo = Circadia;
 		};
+		6A427F05C6004952084D86A5 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 73E6712C264F3F828A9C277A /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = DEF9601A8CA096CA360FF876;
+			remoteInfo = CircadiaWidgets;
+		};
 /* End PBXContainerItemProxy section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		8F6B931FB0E15735445AF660 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				9B80EFA6A27B0CFB3227DBBB /* CircadiaWidgets.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
+		082FA5267EA0AC533BC92C2B /* HabitDetailSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HabitDetailSheet.swift; sourceTree = "<group>"; };
 		08930BDE77DEFEA3E4B5B5A0 /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
+		08ABB8BB2E2D8577F6C0C764 /* ExplainerVisuals.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExplainerVisuals.swift; sourceTree = "<group>"; };
 		0BDC68CF69D5F71D27C54C5E /* LocationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationService.swift; sourceTree = "<group>"; };
 		0FFE9E04E299EF38C033563A /* SolarCalculatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SolarCalculatorTests.swift; sourceTree = "<group>"; };
+		109098A211B1233A6240B90F /* SleepLogTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepLogTests.swift; sourceTree = "<group>"; };
+		1289136373779233A87497EC /* AdaptiveColor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdaptiveColor.swift; sourceTree = "<group>"; };
+		14D1533E6AB7BB792CF01A25 /* SelfReportStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelfReportStore.swift; sourceTree = "<group>"; };
+		154D46A39403407D079ED2D4 /* FocusWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusWidget.swift; sourceTree = "<group>"; };
 		1780BB68137BD0CAFEF9D6DF /* MockDataAndInsightsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockDataAndInsightsTests.swift; sourceTree = "<group>"; };
+		18DA1CB80278D1F92D8A4B4B /* HabitCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HabitCatalog.swift; sourceTree = "<group>"; };
+		1A913F9AA65B45E750915F24 /* LightCheckView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LightCheckView.swift; sourceTree = "<group>"; };
 		1BC9CC1E27548B011AAEC099 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		1E0824705D2749071B61CD76 /* RecommendationCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecommendationCard.swift; sourceTree = "<group>"; };
 		20B9986F85596A4A61F61478 /* Recommendation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Recommendation.swift; sourceTree = "<group>"; };
 		25C709DD84B08BE647F4E298 /* TrendsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrendsViewModel.swift; sourceTree = "<group>"; };
 		27E64EA6C53712D55EB07104 /* DayMetricsBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DayMetricsBuilder.swift; sourceTree = "<group>"; };
 		2B534DDC27DEE1D122CF446C /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
+		2CAA6EBFFF5336FF242BD568 /* PreviewData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewData.swift; sourceTree = "<group>"; };
+		2D0DDB2987094B7BFDB7AB00 /* ScoreForecastTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScoreForecastTests.swift; sourceTree = "<group>"; };
 		3792EE7A5CB56A68D871E92E /* NotificationPlanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationPlanner.swift; sourceTree = "<group>"; };
 		382F92DECA72DC10F8E7B13E /* TrendsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrendsView.swift; sourceTree = "<group>"; };
+		38FC49313F3EA4EF0843CFD0 /* LightMeterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LightMeterTests.swift; sourceTree = "<group>"; };
 		4E6B96AE48A0FC68CFF3AB24 /* WeatherKitProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherKitProvider.swift; sourceTree = "<group>"; };
 		5069EBFAAD59D27E0155081D /* SleepSessionBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepSessionBuilder.swift; sourceTree = "<group>"; };
+		510E7989FF811E05B5E21D4B /* LightMeter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LightMeter.swift; sourceTree = "<group>"; };
+		524F8CD5A4A9B995F481EAB2 /* UsualSleepEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsualSleepEditor.swift; sourceTree = "<group>"; };
+		577B73DCD260628311502179 /* SleepLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepLog.swift; sourceTree = "<group>"; };
+		57BBE5C2A05ACE88C79D0C75 /* ScoreTrendsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScoreTrendsTests.swift; sourceTree = "<group>"; };
 		5B3C9DA35EBE1432E277FE75 /* RecommendationEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecommendationEngineTests.swift; sourceTree = "<group>"; };
+		5B3D3895D336AAC57DE12846 /* SelfReport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelfReport.swift; sourceTree = "<group>"; };
 		5BBCF4EC709649964B3A057A /* MechanismLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MechanismLibrary.swift; sourceTree = "<group>"; };
+		5E80582CD66E3C1142898724 /* MorningLightGoal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MorningLightGoal.swift; sourceTree = "<group>"; };
+		5F9EBB289311B1F85F5D6E7C /* LightMeterCamera.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LightMeterCamera.swift; sourceTree = "<group>"; };
+		62512DB14AE1966B16DF3E50 /* SelfReportTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelfReportTests.swift; sourceTree = "<group>"; };
 		64326E1C38F1BDB71822B872 /* TodayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayView.swift; sourceTree = "<group>"; };
+		656082C72C81D156A567AF4D /* SleepLogCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepLogCard.swift; sourceTree = "<group>"; };
 		6574941D131A05263AF3CEC1 /* PayoffView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PayoffView.swift; sourceTree = "<group>"; };
 		6C7F300076106AD89B5D5B65 /* TestSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestSupport.swift; sourceTree = "<group>"; };
+		6DBCE641BF83369A21AE9300 /* WidgetSnapshotBuilderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetSnapshotBuilderTests.swift; sourceTree = "<group>"; };
+		711C8F4209F80800D01E8140 /* CircadiaWidgets.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = CircadiaWidgets.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		7EF728B0CF0590D2D367A94B /* SunWeatherStrip.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SunWeatherStrip.swift; sourceTree = "<group>"; };
 		82CC6B01B1BC27F42B8185AB /* RecommendationEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecommendationEngine.swift; sourceTree = "<group>"; };
 		8323130024E0B1ED51A5E567 /* Circadia.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Circadia.entitlements; sourceTree = "<group>"; };
+		8A20FFA09333C59216BF76AC /* HabitPickerList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HabitPickerList.swift; sourceTree = "<group>"; };
 		8A41EF3572ED9C0C285DF10C /* InsightsEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InsightsEngine.swift; sourceTree = "<group>"; };
 		8EA3EF463AD80697395919D2 /* DomainTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DomainTypes.swift; sourceTree = "<group>"; };
+		8F038F456651CCF694496FCB /* CircadiaWidgetsBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CircadiaWidgetsBundle.swift; sourceTree = "<group>"; };
 		8FB43F5833CDC115E3CD4602 /* CircadiaTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = CircadiaTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		9393075D68F22988C43D4B25 /* CheckInCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckInCard.swift; sourceTree = "<group>"; };
 		96EEE62A8B4466A545581102 /* Circadia.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Circadia.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		97ACD0268E3A93874CB8B405 /* InsightsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InsightsView.swift; sourceTree = "<group>"; };
+		A47DC52FA4BF5783BAD0FD94 /* ForecastCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForecastCard.swift; sourceTree = "<group>"; };
 		A59E8690538AB2384C0B1943 /* HealthDataProviding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthDataProviding.swift; sourceTree = "<group>"; };
+		A6C3236938CCC2193DBC29B3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		A9761FBE05128EB1D7E85D64 /* ExplainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExplainerView.swift; sourceTree = "<group>"; };
 		AB3BC5DAF2DDE983E4311DED /* TodayViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayViewModel.swift; sourceTree = "<group>"; };
+		AB89E997EC76DBCDC08327D3 /* WidgetBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetBridge.swift; sourceTree = "<group>"; };
 		AE1C0109D284B0D5A06C92C6 /* HealthKitProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitProvider.swift; sourceTree = "<group>"; };
 		AE50954A02EB82C2D4BB2389 /* SunWeatherService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SunWeatherService.swift; sourceTree = "<group>"; };
+		B0B81AD11ABC6E37D2B465D2 /* RecommendationStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecommendationStoreTests.swift; sourceTree = "<group>"; };
+		B225995CA1835B5A711F66FF /* ScoreTrends.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScoreTrends.swift; sourceTree = "<group>"; };
 		B5FD7E0D20798FA2FF77E9C0 /* RecommendationStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecommendationStore.swift; sourceTree = "<group>"; };
 		B66CA44E806314F67EA3549B /* Components.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Components.swift; sourceTree = "<group>"; };
 		B8156ECF128E071A7B0994D9 /* PayoffContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PayoffContent.swift; sourceTree = "<group>"; };
@@ -109,12 +200,20 @@
 		BFE850582DC27AC9BB93C342 /* CircadianRing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CircadianRing.swift; sourceTree = "<group>"; };
 		C704103AFBABDAF3744A3AAB /* NotificationPlannerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationPlannerTests.swift; sourceTree = "<group>"; };
 		C872B6FD78B2484E72A02C60 /* CircadianModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CircadianModelTests.swift; sourceTree = "<group>"; };
+		CB6A12FD47CA3A2ED2030555 /* ScoreForecast.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScoreForecast.swift; sourceTree = "<group>"; };
 		CC9E2D6BDD069FFC9EBD774E /* ClockMath.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClockMath.swift; sourceTree = "<group>"; };
+		D09998564AF1AFAC8511A7A9 /* AlignmentWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlignmentWidget.swift; sourceTree = "<group>"; };
+		DACE8E6B3C074C06FE9F0A65 /* WidgetSnapshotBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetSnapshotBuilder.swift; sourceTree = "<group>"; };
 		DF81E34329C9629FBC87077C /* SleepSessionBuilderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepSessionBuilderTests.swift; sourceTree = "<group>"; };
 		E01A70A2D57F4AEE75B29F86 /* CircadiaApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CircadiaApp.swift; sourceTree = "<group>"; };
+		E11360AF38635625F88C447D /* ScoreRecap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScoreRecap.swift; sourceTree = "<group>"; };
+		E41F221FC8BD8A04EE3D1CCC /* CircadiaWidgets.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = CircadiaWidgets.entitlements; sourceTree = "<group>"; };
 		E5000B0262AFE0D6B62D19FA /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		E86E2186A2C9DCEFD50B7540 /* MorningRecapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MorningRecapView.swift; sourceTree = "<group>"; };
 		EB601AD7184D41E401C17B7E /* CircadianConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CircadianConfig.swift; sourceTree = "<group>"; };
 		ED8B18D86E90459B593A724F /* AppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettings.swift; sourceTree = "<group>"; };
+		F100B1F2C140F701B9F035E8 /* WidgetSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetSnapshot.swift; sourceTree = "<group>"; };
+		F3956A97B99313A326106C6F /* WidgetStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetStyle.swift; sourceTree = "<group>"; };
 		F41D3345D2842D29255C553B /* CircadianModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CircadianModel.swift; sourceTree = "<group>"; };
 		F520D507D7214A56EFD768FE /* MockHealthDataProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockHealthDataProvider.swift; sourceTree = "<group>"; };
 		FA20AAF6FE0826EFA6F837B1 /* PersistentModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistentModels.swift; sourceTree = "<group>"; };
@@ -126,10 +225,12 @@
 			children = (
 				A59E8690538AB2384C0B1943 /* HealthDataProviding.swift */,
 				AE1C0109D284B0D5A06C92C6 /* HealthKitProvider.swift */,
+				5F9EBB289311B1F85F5D6E7C /* LightMeterCamera.swift */,
 				0BDC68CF69D5F71D27C54C5E /* LocationService.swift */,
 				F520D507D7214A56EFD768FE /* MockHealthDataProvider.swift */,
 				BAE2845AF00D044DA3DC31FA /* NotificationService.swift */,
 				B5FD7E0D20798FA2FF77E9C0 /* RecommendationStore.swift */,
+				14D1533E6AB7BB792CF01A25 /* SelfReportStore.swift */,
 				AE50954A02EB82C2D4BB2389 /* SunWeatherService.swift */,
 				4E6B96AE48A0FC68CFF3AB24 /* WeatherKitProvider.swift */,
 			);
@@ -140,6 +241,7 @@
 			isa = PBXGroup;
 			children = (
 				BFDBAC63851EA7522B0DF3AC /* OnboardingView.swift */,
+				524F8CD5A4A9B995F481EAB2 /* UsualSleepEditor.swift */,
 			);
 			path = Onboarding;
 			sourceTree = "<group>";
@@ -160,6 +262,7 @@
 				F3C9B0C220A14F25DBCF1477 /* DesignSystem */,
 				E89893CCDFB076BCB0333FAC /* Features */,
 				9AD8BC505765B31BABF7BD3B /* Resources */,
+				DCF07B45AA94F4AAB4B9177F /* Shared */,
 				7D129F3A677717DD6098BAC7 /* Tests */,
 			);
 			path = Circadia;
@@ -177,11 +280,21 @@
 			path = Models;
 			sourceTree = "<group>";
 		};
+		440CC1E5B2FCF4EF55E73F3D /* Habits */ = {
+			isa = PBXGroup;
+			children = (
+				082FA5267EA0AC533BC92C2B /* HabitDetailSheet.swift */,
+				8A20FFA09333C59216BF76AC /* HabitPickerList.swift */,
+			);
+			path = Habits;
+			sourceTree = "<group>";
+		};
 		52B324FD2AE9E6B60639B3D0 /* Products */ = {
 			isa = PBXGroup;
 			children = (
 				96EEE62A8B4466A545581102 /* Circadia.app */,
 				8FB43F5833CDC115E3CD4602 /* CircadiaTests.xctest */,
+				711C8F4209F80800D01E8140 /* CircadiaWidgets.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -189,8 +302,12 @@
 		686D7018D8647E95F6BACA63 /* Today */ = {
 			isa = PBXGroup;
 			children = (
+				9393075D68F22988C43D4B25 /* CheckInCard.swift */,
+				A47DC52FA4BF5783BAD0FD94 /* ForecastCard.swift */,
+				E86E2186A2C9DCEFD50B7540 /* MorningRecapView.swift */,
 				6574941D131A05263AF3CEC1 /* PayoffView.swift */,
 				1E0824705D2749071B61CD76 /* RecommendationCard.swift */,
+				656082C72C81D156A567AF4D /* SleepLogCard.swift */,
 				7EF728B0CF0590D2D367A94B /* SunWeatherStrip.swift */,
 				64326E1C38F1BDB71822B872 /* TodayView.swift */,
 				AB3BC5DAF2DDE983E4311DED /* TodayViewModel.swift */,
@@ -201,10 +318,25 @@
 		6A34F82AD4D05A007CFB6DB0 /* Content */ = {
 			isa = PBXGroup;
 			children = (
+				18DA1CB80278D1F92D8A4B4B /* HabitCatalog.swift */,
 				5BBCF4EC709649964B3A057A /* MechanismLibrary.swift */,
 				B8156ECF128E071A7B0994D9 /* PayoffContent.swift */,
 			);
 			path = Content;
+			sourceTree = "<group>";
+		};
+		72D81A941B2DF7F2CB994C04 /* CircadiaWidgets */ = {
+			isa = PBXGroup;
+			children = (
+				D09998564AF1AFAC8511A7A9 /* AlignmentWidget.swift */,
+				E41F221FC8BD8A04EE3D1CCC /* CircadiaWidgets.entitlements */,
+				8F038F456651CCF694496FCB /* CircadiaWidgetsBundle.swift */,
+				154D46A39403407D079ED2D4 /* FocusWidget.swift */,
+				A6C3236938CCC2193DBC29B3 /* Info.plist */,
+				2CAA6EBFFF5336FF242BD568 /* PreviewData.swift */,
+				F3956A97B99313A326106C6F /* WidgetStyle.swift */,
+			);
+			path = CircadiaWidgets;
 			sourceTree = "<group>";
 		};
 		761C71AFF52ED0069D8BF05B /* Learn */ = {
@@ -219,20 +351,37 @@
 			isa = PBXGroup;
 			children = (
 				C872B6FD78B2484E72A02C60 /* CircadianModelTests.swift */,
+				38FC49313F3EA4EF0843CFD0 /* LightMeterTests.swift */,
 				1780BB68137BD0CAFEF9D6DF /* MockDataAndInsightsTests.swift */,
 				C704103AFBABDAF3744A3AAB /* NotificationPlannerTests.swift */,
 				5B3C9DA35EBE1432E277FE75 /* RecommendationEngineTests.swift */,
+				B0B81AD11ABC6E37D2B465D2 /* RecommendationStoreTests.swift */,
+				2D0DDB2987094B7BFDB7AB00 /* ScoreForecastTests.swift */,
+				57BBE5C2A05ACE88C79D0C75 /* ScoreTrendsTests.swift */,
+				62512DB14AE1966B16DF3E50 /* SelfReportTests.swift */,
+				109098A211B1233A6240B90F /* SleepLogTests.swift */,
 				DF81E34329C9629FBC87077C /* SleepSessionBuilderTests.swift */,
 				0FFE9E04E299EF38C033563A /* SolarCalculatorTests.swift */,
 				6C7F300076106AD89B5D5B65 /* TestSupport.swift */,
+				6DBCE641BF83369A21AE9300 /* WidgetSnapshotBuilderTests.swift */,
 			);
 			path = Tests;
+			sourceTree = "<group>";
+		};
+		8E4827648428AFFF6561B6E3 /* Explainer */ = {
+			isa = PBXGroup;
+			children = (
+				A9761FBE05128EB1D7E85D64 /* ExplainerView.swift */,
+				08ABB8BB2E2D8577F6C0C764 /* ExplainerVisuals.swift */,
+			);
+			path = Explainer;
 			sourceTree = "<group>";
 		};
 		98B14420FD742C55785C2120 = {
 			isa = PBXGroup;
 			children = (
 				29729E4AE5C90DB98E5AF1D3 /* Circadia */,
+				72D81A941B2DF7F2CB994C04 /* CircadiaWidgets */,
 				52B324FD2AE9E6B60639B3D0 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -245,6 +394,7 @@
 				E01A70A2D57F4AEE75B29F86 /* CircadiaApp.swift */,
 				BBC47E67C9B3C62789354F77 /* Info.plist */,
 				B8949C6E8B24F8A06A592E66 /* RootView.swift */,
+				AB89E997EC76DBCDC08327D3 /* WidgetBridge.swift */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -275,9 +425,17 @@
 				F41D3345D2842D29255C553B /* CircadianModel.swift */,
 				27E64EA6C53712D55EB07104 /* DayMetricsBuilder.swift */,
 				8A41EF3572ED9C0C285DF10C /* InsightsEngine.swift */,
+				510E7989FF811E05B5E21D4B /* LightMeter.swift */,
+				5E80582CD66E3C1142898724 /* MorningLightGoal.swift */,
 				3792EE7A5CB56A68D871E92E /* NotificationPlanner.swift */,
 				82CC6B01B1BC27F42B8185AB /* RecommendationEngine.swift */,
+				CB6A12FD47CA3A2ED2030555 /* ScoreForecast.swift */,
+				E11360AF38635625F88C447D /* ScoreRecap.swift */,
+				B225995CA1835B5A711F66FF /* ScoreTrends.swift */,
+				5B3D3895D336AAC57DE12846 /* SelfReport.swift */,
+				577B73DCD260628311502179 /* SleepLog.swift */,
 				5069EBFAAD59D27E0155081D /* SleepSessionBuilder.swift */,
+				DACE8E6B3C074C06FE9F0A65 /* WidgetSnapshotBuilder.swift */,
 			);
 			path = Engines;
 			sourceTree = "<group>";
@@ -298,6 +456,23 @@
 			path = Insights;
 			sourceTree = "<group>";
 		};
+		D6E710C0E945CA0D0E98F8E6 /* LightCheck */ = {
+			isa = PBXGroup;
+			children = (
+				1A913F9AA65B45E750915F24 /* LightCheckView.swift */,
+			);
+			path = LightCheck;
+			sourceTree = "<group>";
+		};
+		DCF07B45AA94F4AAB4B9177F /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				1289136373779233A87497EC /* AdaptiveColor.swift */,
+				F100B1F2C140F701B9F035E8 /* WidgetSnapshot.swift */,
+			);
+			path = Shared;
+			sourceTree = "<group>";
+		};
 		DF627B0DAF959443CFFC38A8 /* Trends */ = {
 			isa = PBXGroup;
 			children = (
@@ -310,8 +485,11 @@
 		E89893CCDFB076BCB0333FAC /* Features */ = {
 			isa = PBXGroup;
 			children = (
+				8E4827648428AFFF6561B6E3 /* Explainer */,
+				440CC1E5B2FCF4EF55E73F3D /* Habits */,
 				CDB3D7E74F62904C92966A64 /* Insights */,
 				761C71AFF52ED0069D8BF05B /* Learn */,
+				D6E710C0E945CA0D0E98F8E6 /* LightCheck */,
 				16577355351B6033A1A5E473 /* Onboarding */,
 				A5C08D575186375B2FFBE3EB /* Settings */,
 				686D7018D8647E95F6BACA63 /* Today */,
@@ -339,10 +517,12 @@
 			buildPhases = (
 				1C2C734C270334A00BECDAFB /* Sources */,
 				DFABBD4EB6EF16D93C9C5C4C /* Resources */,
+				8F6B931FB0E15735445AF660 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				7E495C8CB9C06FB0D7EC454F /* PBXTargetDependency */,
 			);
 			name = Circadia;
 			packageProductDependencies = (
@@ -369,6 +549,23 @@
 			productReference = 8FB43F5833CDC115E3CD4602 /* CircadiaTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
+		DEF9601A8CA096CA360FF876 /* CircadiaWidgets */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 69432D9FE849A2F793E2B69D /* Build configuration list for PBXNativeTarget "CircadiaWidgets" */;
+			buildPhases = (
+				04C1762D678703CC0B60A9BB /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = CircadiaWidgets;
+			packageProductDependencies = (
+			);
+			productName = CircadiaWidgets;
+			productReference = 711C8F4209F80800D01E8140 /* CircadiaWidgets.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -379,7 +576,11 @@
 				LastUpgradeCheck = 1430;
 				TargetAttributes = {
 					7987DFDAB9D7AA08976322BD = {
-						DevelopmentTeam = "";
+						DevelopmentTeam = V7Z23T9D5C;
+						ProvisioningStyle = Automatic;
+					};
+					DEF9601A8CA096CA360FF876 = {
+						DevelopmentTeam = V7Z23T9D5C;
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -399,6 +600,7 @@
 			projectRoot = "";
 			targets = (
 				7987DFDAB9D7AA08976322BD /* Circadia */,
+				DEF9601A8CA096CA360FF876 /* CircadiaWidgets */,
 				D0CB5C86CF810104AB65F3AC /* CircadiaTests */,
 			);
 		};
@@ -416,12 +618,28 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		04C1762D678703CC0B60A9BB /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9ED8E4516F5334A0EFD9BEE2 /* AdaptiveColor.swift in Sources */,
+				030B8E7B76091B4E4DBD73A6 /* AlignmentWidget.swift in Sources */,
+				33D77790B61C8F5FDEF4E27C /* CircadiaWidgetsBundle.swift in Sources */,
+				C2CEFCF77FFD2A3CDAA44171 /* FocusWidget.swift in Sources */,
+				D0CBB3D0840CD9CA85C7C659 /* PreviewData.swift in Sources */,
+				C6BAD04A1806A622021E8743 /* WidgetSnapshot.swift in Sources */,
+				5D13E66327A2B4744B8B311C /* WidgetStyle.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		1C2C734C270334A00BECDAFB /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7CCE7572131B1A0CB500C25F /* AdaptiveColor.swift in Sources */,
 				73FC5B47B0D60478D176E98D /* AppModel.swift in Sources */,
 				307D5CE156B57ED35F32C998 /* AppSettings.swift in Sources */,
+				1EFB602670709562A6D83E5D /* CheckInCard.swift in Sources */,
 				BC0AB831447B47E1694AEF73 /* CircadiaApp.swift in Sources */,
 				4718E590E26DFCD08F4CF349 /* CircadianConfig.swift in Sources */,
 				2FAEF72E8ADEDC42069E30F9 /* CircadianModel.swift in Sources */,
@@ -430,14 +648,25 @@
 				90F9C32380FA0E6D63A8CB1E /* Components.swift in Sources */,
 				A498C2FB4DF622C38DFF92E8 /* DayMetricsBuilder.swift in Sources */,
 				9ABA99FECA5C67BEC7F9DF62 /* DomainTypes.swift in Sources */,
+				00D77DAA2DD884489BB1882F /* ExplainerView.swift in Sources */,
+				0251581D8973CD4630337120 /* ExplainerVisuals.swift in Sources */,
+				668324EAB5062416B1CB8CF4 /* ForecastCard.swift in Sources */,
+				D3CE7BDA0F255B087FAE5A7E /* HabitCatalog.swift in Sources */,
+				0668454E5770FF5FD5F2D904 /* HabitDetailSheet.swift in Sources */,
+				CD760EF800C38B58B3369472 /* HabitPickerList.swift in Sources */,
 				00FCD18DC2BCF91C138567EF /* HealthDataProviding.swift in Sources */,
 				CC6DED62A2BAC5F667B8BFE1 /* HealthKitProvider.swift in Sources */,
 				D571D9A1D8F28D8266928232 /* InsightsEngine.swift in Sources */,
 				DEC87E82B919A5AEBEBD5250 /* InsightsView.swift in Sources */,
 				0C961AFB56BFF457D75AACD6 /* LearnView.swift in Sources */,
+				8FCB1CFB32B3668CF9309AC3 /* LightCheckView.swift in Sources */,
+				DD2C238DC2CB4560F424DF19 /* LightMeter.swift in Sources */,
+				91A8F21BCE01F5083C19AE4C /* LightMeterCamera.swift in Sources */,
 				5C4353DEE7B8CF5FA1635DB4 /* LocationService.swift in Sources */,
 				E63289181F2453466EB481DA /* MechanismLibrary.swift in Sources */,
 				CCC7EC61869AA6395C3C7403 /* MockHealthDataProvider.swift in Sources */,
+				59DDCCCB8394509F3F84CD40 /* MorningLightGoal.swift in Sources */,
+				06D0794089F525BA4830A72C /* MorningRecapView.swift in Sources */,
 				19F73BDB39AC7351846C0225 /* NotificationPlanner.swift in Sources */,
 				F8845F59CD4A52640245871E /* NotificationService.swift in Sources */,
 				950BCBFDE05E05FF5CA2810F /* OnboardingView.swift in Sources */,
@@ -449,7 +678,14 @@
 				34552FBEFF16593221A70272 /* RecommendationEngine.swift in Sources */,
 				797A502FFC774D5B323C0346 /* RecommendationStore.swift in Sources */,
 				F1BD08BA98B37BC59608815E /* RootView.swift in Sources */,
+				A865C30D635BEF1A1A9C8BDE /* ScoreForecast.swift in Sources */,
+				97638AADF8674D34E82D8C16 /* ScoreRecap.swift in Sources */,
+				B8669A652A525A4B85B7CAE4 /* ScoreTrends.swift in Sources */,
+				51A5434B342C09D4F5253B9D /* SelfReport.swift in Sources */,
+				10F8177C96BBFA32E17E33F9 /* SelfReportStore.swift in Sources */,
 				E61D12E27F5AD821028EA03C /* SettingsView.swift in Sources */,
+				6B13B8CA2AF691B89776514C /* SleepLog.swift in Sources */,
+				7846B312472F46F5E8A4514E /* SleepLogCard.swift in Sources */,
 				D1DC6A25A7F562C724C1E76D /* SleepSessionBuilder.swift in Sources */,
 				E70B69792BE7CEECED21CAEB /* SunWeatherService.swift in Sources */,
 				BA89FF7B2BB73F5B4B3C85AE /* SunWeatherStrip.swift in Sources */,
@@ -458,7 +694,11 @@
 				B3BC65384D08A481549C5AC2 /* TodayViewModel.swift in Sources */,
 				DF650A83B0DAD5CBBCF72A61 /* TrendsView.swift in Sources */,
 				088B4BB3DE4986613295F0EB /* TrendsViewModel.swift in Sources */,
+				DD8BF6C5914455DD75E79E50 /* UsualSleepEditor.swift in Sources */,
 				71A6AEB0555D2BA74A0AA67D /* WeatherKitProvider.swift in Sources */,
+				FF045A726594E8343A12DDAA /* WidgetBridge.swift in Sources */,
+				7E40A471F1DE01E8F3FEF986 /* WidgetSnapshot.swift in Sources */,
+				8DF3857CB8B4A9C7EBE4B3C4 /* WidgetSnapshotBuilder.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -467,12 +707,19 @@
 			buildActionMask = 2147483647;
 			files = (
 				5DC57D80F10313BC7311997E /* CircadianModelTests.swift in Sources */,
+				759EC3E69B5CDE664F643163 /* LightMeterTests.swift in Sources */,
 				5C1A3F10589DF7E785A1E80E /* MockDataAndInsightsTests.swift in Sources */,
 				F588E5CB0E01620AEFF26906 /* NotificationPlannerTests.swift in Sources */,
 				5C99ABAE86B420EEB76C888B /* RecommendationEngineTests.swift in Sources */,
+				A12A42A87B0038332799C2F0 /* RecommendationStoreTests.swift in Sources */,
+				5BDD6E53B24D894267C07214 /* ScoreForecastTests.swift in Sources */,
+				3E8DCC50043642D375DA3C02 /* ScoreTrendsTests.swift in Sources */,
+				218611F4FFDD9AF3D5E0E70C /* SelfReportTests.swift in Sources */,
+				616596A742D5EF6AFF7E581E /* SleepLogTests.swift in Sources */,
 				339EF98AEC0520437BC78548 /* SleepSessionBuilderTests.swift in Sources */,
 				37D42A4A847BAC38DA739921 /* SolarCalculatorTests.swift in Sources */,
 				85C3B0D2A36F917D9E169EE8 /* TestSupport.swift in Sources */,
+				BBE201D9A55A81B19C369537 /* WidgetSnapshotBuilderTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -483,6 +730,11 @@
 			isa = PBXTargetDependency;
 			target = 7987DFDAB9D7AA08976322BD /* Circadia */;
 			targetProxy = 58DC301817C344EA26EBFED1 /* PBXContainerItemProxy */;
+		};
+		7E495C8CB9C06FB0D7EC454F /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = DEF9601A8CA096CA360FF876 /* CircadiaWidgets */;
+			targetProxy = 6A427F05C6004952084D86A5 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -512,14 +764,33 @@
 				CODE_SIGN_ENTITLEMENTS = Circadia/App/Circadia.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = V7Z23T9D5C;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = Circadia/App/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.circadia.app;
+				PRODUCT_BUNDLE_IDENTIFIER = com.projectcircadia.app;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		6E4B2447E94C2FCDDAC5A0EC /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = CircadiaWidgets/CircadiaWidgets.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = V7Z23T9D5C;
+				ENABLE_PREVIEWS = YES;
+				INFOPLIST_FILE = CircadiaWidgets/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.projectcircadia.app.widgets;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = 1;
 			};
@@ -656,14 +927,14 @@
 				CODE_SIGN_ENTITLEMENTS = Circadia/App/Circadia.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = V7Z23T9D5C;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = Circadia/App/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.circadia.app;
+				PRODUCT_BUNDLE_IDENTIFIER = com.projectcircadia.app;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = 1;
 			};
@@ -686,6 +957,25 @@
 			};
 			name = Debug;
 		};
+		FFF6812F2FA1E3E8A1CB9E05 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = CircadiaWidgets/CircadiaWidgets.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = V7Z23T9D5C;
+				ENABLE_PREVIEWS = YES;
+				INFOPLIST_FILE = CircadiaWidgets/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.projectcircadia.app.widgets;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -694,6 +984,15 @@
 			buildConfigurations = (
 				6E4B3CCB386E6E056B290F00 /* Debug */,
 				A38B20C115A87E87EA9CAAFD /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		69432D9FE849A2F793E2B69D /* Build configuration list for PBXNativeTarget "CircadiaWidgets" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FFF6812F2FA1E3E8A1CB9E05 /* Debug */,
+				6E4B2447E94C2FCDDAC5A0EC /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;

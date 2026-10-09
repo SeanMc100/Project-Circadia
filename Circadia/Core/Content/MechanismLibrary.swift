@@ -59,7 +59,7 @@ enum MechanismLibrary {
                 key: key, title: "Evening light", systemImage: "lightbulb.min",
                 headline: "Bright evening light suppresses melatonin and nudges your clock later.",
                 why: "The same light-sensing pathway that helps you in the morning works against you at night. In the evening, light falls on the 'shift later' part of the clock's response and also acutely suppresses melatonin. Dimmer, warmer light positioned below eye level sends a much weaker signal, which helps your melatonin rise on schedule.",
-                deeper: "People differ a lot in how sensitive they are to evening light; some show large melatonin suppression at ordinary room brightness and others very little. Overhead room lighting is often a bigger contributor than a phone, but brightness and closeness add up, so lowering screen brightness still helps. Warm-tint 'night modes' reduce the blue component somewhat, but overall brightness matters more. Starting about two to three hours before bed gives the evening melatonin rise room to happen."
+                deeper: "People differ a lot in how sensitive they are to evening light; some show large melatonin suppression at ordinary room brightness and others very little. Overhead room lighting is often a bigger contributor than a phone, but brightness and closeness add up, so lowering screen brightness still helps. Warm-tint 'night modes' reduce the blue component somewhat, but overall brightness matters more. Expert consensus guidance is to keep light dim from at least three hours before bed, which gives the evening melatonin rise room to happen."
             )
         case .consistency:
             MechanismEntry(

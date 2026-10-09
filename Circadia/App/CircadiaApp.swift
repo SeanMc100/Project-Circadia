@@ -18,10 +18,10 @@ final class AppContainer {
             try? FileManager.default.createDirectory(at: support, withIntermediateDirectories: true)
         }
         do {
-            modelContainer = try ModelContainer(for: RecommendationRecord.self)
+            modelContainer = try ModelContainer(for: RecommendationRecord.self, HabitCheckIn.self, SleepLogEntry.self, LightReport.self)
         } catch {
             // Fall back to memory rather than crash; history simply won't persist this session.
-            modelContainer = try! ModelContainer(for: RecommendationRecord.self,
+            modelContainer = try! ModelContainer(for: RecommendationRecord.self, HabitCheckIn.self, SleepLogEntry.self, LightReport.self,
                                                  configurations: ModelConfiguration(isStoredInMemoryOnly: true))
         }
         appModel = AppModel(settings: settings, modelContext: modelContainer.mainContext)
@@ -65,6 +65,7 @@ struct CircadiaApp: App {
         }
         .onChange(of: scenePhase) { _, phase in
             if phase == .active { container.appModel.requestRefresh() }
+            if phase == .background { container.appModel.publishWidgets() }
         }
         .backgroundTask(.appRefresh(BackgroundRefreshScheduler.taskIdentifier)) {
             await BackgroundRefreshScheduler.handle()

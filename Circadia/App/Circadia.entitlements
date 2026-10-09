@@ -10,5 +10,9 @@
 	<true/>
 	<key>com.apple.developer.weatherkit</key>
 	<true/>
+	<key>com.apple.security.application-groups</key>
+	<array>
+		<string>group.com.projectcircadia.app</string>
+	</array>
 </dict>
 </plist>

@@ -24,9 +24,6 @@ struct PayoffView: View {
                     } label: {
                         Label("Read more about this mechanism", systemImage: "book")
                     }
-                    Text("Effects vary from person to person; these are typical tendencies, not guarantees.")
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
                 }
                 .padding(24)
             }

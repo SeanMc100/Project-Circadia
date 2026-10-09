@@ -24,6 +24,8 @@
 	<string>$(MARKETING_VERSION)</string>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Light Check uses the camera to estimate how bright your surroundings are and the colour of the light. Frames are averaged on your phone and never recorded or saved.</string>
 	<key>NSHealthShareUsageDescription</key>
 	<string>Circadia reads your sleep timing, time in daylight, heart rate variability, resting heart rate and wrist temperature to estimate your body-clock alignment and time its suggestions. Your data stays on this iPhone.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>

@@ -103,10 +103,46 @@ final class CircadianModelTests: XCTestCase {
         XCTAssertEqual(CircadianModel.lightTimingScore(firstLightMinutes: 120), 0.5, accuracy: 0.001)
         XCTAssertEqual(CircadianModel.lightTimingScore(firstLightMinutes: 180), 0)
         XCTAssertEqual(CircadianModel.lightTimingScore(firstLightMinutes: nil), 0)
-        XCTAssertEqual(CircadianModel.lightAmountScore(minutesBeforeNoon: 10), 0.5, accuracy: 0.001)
-        XCTAssertEqual(CircadianModel.lightAmountScore(minutesBeforeNoon: 45), 1)
-        let s = CircadianModel.morningLightScore(firstLightMinutes: 120, minutesBeforeNoon: 10)
-        XCTAssertEqual(s.combined, 0.5, accuracy: 0.001)
+        // Square-root curve: half the goal earns about 71%.
+        XCTAssertEqual(CircadianModel.lightAmountScore(minutesBeforeNoon: 10, goalMinutes: 20), 0.7071, accuracy: 0.001)
+        XCTAssertEqual(CircadianModel.lightAmountScore(minutesBeforeNoon: 45, goalMinutes: 20), 1)
+        XCTAssertEqual(CircadianModel.lightAmountScore(minutesBeforeNoon: 0, goalMinutes: 20), 0)
+        let s = CircadianModel.morningLightScore(firstLightMinutes: 120, minutesBeforeNoon: 10, goalMinutes: 20)
+        XCTAssertEqual(s.combined, 0.5 * 0.5 + 0.5 * 0.7071, accuracy: 0.001)
+    }
+
+    func testLightMinutesRoundToNearestFive() {
+        XCTAssertEqual(MorningLightGoal.credited(17.4), 15)
+        XCTAssertEqual(MorningLightGoal.credited(17.5), 20)
+        XCTAssertEqual(MorningLightGoal.credited(2), 0)
+        // 8.5 Watch minutes on a clear morning (goal 10) round to full credit.
+        XCTAssertEqual(CircadianModel.lightAmountScore(minutesBeforeNoon: 8.5, goalMinutes: 10), 1)
+        XCTAssertEqual(CircadianModel.lightAmountScore(minutesBeforeNoon: 18, goalMinutes: 20), 1)
+    }
+
+    func testGoalFollowsSky() {
+        XCTAssertEqual(MorningLightGoal(sky: .clear).minutes, 10)
+        XCTAssertEqual(MorningLightGoal(sky: .partlyCloudy).minutes, 15)
+        XCTAssertEqual(MorningLightGoal(sky: .overcast).minutes, 25)
+        XCTAssertEqual(MorningLightGoal.unknown.minutes, 15)
+        XCTAssertTrue(MorningLightGoal(sky: .overcast).sentence.contains("25 minutes"))
+
+        let start = TestCal.date(2026, 10, 6, 8, 0)
+        let window = DateInterval(start: start, duration: 2 * 3600)
+        let hourly = [0.1, 0.9, 0.9].enumerated().map { i, cover in
+            HourlyWeather(date: start.addingTimeInterval(Double(i) * 3600), cloudCover: cover, uvIndex: 1, isDaylight: true)
+        }
+        let weather = WeatherSnapshot(cloudCover: 0.0, conditionText: "", symbolName: "", uvIndex: nil,
+                                      temperatureText: nil, isPrecipitating: false, hourly: hourly)
+        // 8:00 and 9:00 overlap the window (average 0.5), 10:00 doesn't.
+        XCTAssertEqual(MorningLightGoal.sky(over: window, weather: weather, now: start), .partlyCloudy)
+        XCTAssertEqual(MorningLightGoal.sky(over: window, weather: nil, now: start), .unknown)
+
+        // Beyond the forecast: a future morning is unknown, not today's sky; a passed one uses the current sky.
+        let later = DateInterval(start: start.addingTimeInterval(2 * 86_400), duration: 2 * 3600)
+        XCTAssertEqual(MorningLightGoal.sky(over: later, weather: weather, now: start), .unknown)
+        let earlier = DateInterval(start: start.addingTimeInterval(-86_400), duration: 2 * 3600)
+        XCTAssertEqual(MorningLightGoal.sky(over: earlier, weather: weather, now: start), .clear)
     }
 
     func testConsistencyAndDriftScores() {
@@ -118,7 +154,7 @@ final class CircadianModelTests: XCTestCase {
     }
 
     func testAlignmentWeightsAndComponents() {
-        let light = MorningLightAssessment(timingScore: 1, amountScore: 0.2, combined: 0.6, firstLightMinutes: 30, minutesBeforeNoon: 4, isToday: true)
+        let light = MorningLightAssessment(timingScore: 1, amountScore: 0.2, combined: 0.6, firstLightMinutes: 30, minutesBeforeNoon: 4, goalMinutes: 20, isToday: true)
         // consistency SD 15 → 1.0; light 0.6; drift 0 → 1.0 → 0.40 + 0.21 + 0.25 = 0.86
         let score = CircadianModel.alignment(onsetSD: 15, wakeSD: 15, light: light, drift: 0, weights: CircadianConfig.defaultWeights)
         XCTAssertEqual(score?.value, 86)

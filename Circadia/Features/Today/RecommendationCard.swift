@@ -5,6 +5,18 @@ struct RecommendationCard: View {
     @Environment(AppModel.self) private var app
     @Environment(\.skyPhase) private var phase
     @State private var expanded = false
+    @State private var askMinutes = false
+
+    /// Done on a light card asks how long so the score can use it. With a Watch, the answer tops up
+    /// what the Watch saw, since it misses time outside (a sleeve over it, an arm in a pocket).
+    private var asksForMinutes: Bool { recommendation.kind.isLightKind }
+
+    /// The usual choices plus the card's own goal, e.g. 10, 20, 25, 30 on an overcast morning.
+    private var minuteChoices: [Double] {
+        var choices = Set(CircadianConfig.reportedLightChoices)
+        if case .outdoorLight(let goal, _) = recommendation.successCriteria { choices.insert(goal) }
+        return choices.sorted()
+    }
 
     private var mechanism: MechanismEntry { MechanismLibrary.entry(for: recommendation.mechanismKey) }
 
@@ -13,10 +25,7 @@ struct RecommendationCard: View {
             HStack(spacing: 8) {
                 Image(systemName: recommendation.kind.systemImage)
                     .foregroundStyle(phase.palette.accent)
-                    .accessibilityHidden(true)
-                Text(recommendation.kind.title)
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(.secondary)
+                    .accessibilityLabel(recommendation.kind.title)
                 Spacer()
                 Pill(text: recommendation.urgency.label,
                      tint: recommendation.urgency == .now ? phase.palette.accent : .secondary)
@@ -41,6 +50,15 @@ struct RecommendationCard: View {
                 }
             }
 
+            switch recommendation.kind {
+            case .morningLight, .lateDayLight, .travelShift:
+                LightCheckButton(title: "Check how bright it is", moment: .day)
+            case .windDown:
+                LightCheckButton(title: "Is your room dim enough?", moment: .evening)
+            default:
+                EmptyView()
+            }
+
             mechanismSection
 
             if recommendation.kind != .maintenance {
@@ -49,14 +67,31 @@ struct RecommendationCard: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
                     Spacer()
-                    Button("Skip") { app.skip(recommendation) }
+                    Button("Skip") { withAnimation { app.skip(recommendation) } }
                         .buttonStyle(.bordered)
                         .accessibilityHint("Hides this suggestion for today")
-                    Button("Done") { app.markDone(recommendation) }
-                        .buttonStyle(.borderedProminent)
-                        .accessibilityHint("Marks this suggestion as followed")
+                    Button("Done") {
+                        if asksForMinutes {
+                            askMinutes = true
+                        } else {
+                            withAnimation(.easeInOut(duration: 0.3)) { app.markDone(recommendation) }
+                        }
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .accessibilityHint("Marks this suggestion as followed")
                 }
                 .controlSize(.small)
+                .confirmationDialog("About how long were you outside?", isPresented: $askMinutes, titleVisibility: .visible) {
+                    ForEach(minuteChoices, id: \.self) { minutes in
+                        Button(minutes >= minuteChoices.last! ? "\(Int(minutes)) min or more" : "About \(Int(minutes)) min") {
+                            withAnimation(.easeInOut(duration: 0.3)) { app.markDone(recommendation, minutes: minutes) }
+                        }
+                    }
+                } message: {
+                    Text(app.canSenseLight
+                         ? "A rough guess is fine. Your Watch can miss time outside, so if you were out longer than it saw, your answer counts instead."
+                         : "A rough guess is fine. It counts toward the morning-light part of your estimate.")
+                }
             }
         }
         .animation(.easeInOut(duration: 0.2), value: expanded)
@@ -69,7 +104,7 @@ struct RecommendationCard: View {
             } label: {
                 HStack(alignment: .top, spacing: 8) {
                     Image(systemName: "lightbulb").foregroundStyle(phase.palette.accent).accessibilityHidden(true)
-                    Text(mechanism.headline)
+                    Text("Why this works")
                         .font(.footnote.weight(.medium))
                         .multilineTextAlignment(.leading)
                         .foregroundStyle(.primary)
@@ -82,10 +117,13 @@ struct RecommendationCard: View {
                 }
             }
             .buttonStyle(.plain)
-            .accessibilityLabel("Why this works: \(mechanism.headline)")
+            .accessibilityLabel("Why this works")
             .accessibilityHint(expanded ? "Collapses the explanation" : "Expands the explanation")
 
             if expanded {
+                Text(mechanism.headline)
+                    .font(.footnote.weight(.medium))
+                    .fixedSize(horizontal: false, vertical: true)
                 Text(mechanism.why)
                     .font(.footnote)
                     .foregroundStyle(.secondary)

@@ -8,14 +8,24 @@ enum CircadianModel {
 
     // MARK: - Snapshot
 
+    /// - Parameter usual: "Your usual sleep" answers. While fewer than `baselineMinimumNights` prior
+    ///   nights exist, they stand in for the missing ones, so there's a provisional baseline (and
+    ///   score) from the first logged night. They never stand in for consistency: invented nights
+    ///   would look perfectly regular.
     static func snapshot(days: [DayMetrics], now: Date, calendar: Calendar = .current,
-                         weights: ScoreWeights = CircadianConfig.defaultWeights) -> CircadianSnapshot {
+                         weights: ScoreWeights = CircadianConfig.defaultWeights, usual: UsualSleep? = nil) -> CircadianSnapshot {
         let nights = days.filter { $0.night != nil && $0.midpointMinutes != nil }.sorted { $0.day < $1.day }
         guard let latest = nights.last, let latestMidpoint = latest.midpointMinutes else { return .empty }
 
         let prior = Array(nights.dropLast().suffix(CircadianConfig.baselineWindowNights))
-        let baseline = prior.count >= CircadianConfig.baselineMinimumNights
-            ? baselineMidpoint(prior.compactMap(\.midpointMinutes)) : nil
+        let priorMidpoints = prior.compactMap(\.midpointMinutes)
+        var baseline = prior.count >= CircadianConfig.baselineMinimumNights ? baselineMidpoint(priorMidpoints) : nil
+        var isProvisional = false
+        if baseline == nil, let usual {
+            let missing = CircadianConfig.baselineMinimumNights - prior.count
+            baseline = baselineMidpoint(priorMidpoints + usual.standInMidpoints(count: missing, before: (prior.first ?? latest).day, calendar: calendar))
+            isProvisional = baseline != nil
+        }
         let drift = baseline.map { ClockMath.wrapSigned(latestMidpoint - $0) }
 
         let recent = Array(nights.suffix(CircadianConfig.consistencyWindowNights))
@@ -36,7 +46,7 @@ enum CircadianModel {
         snapshot.drift = drift
         snapshot.onsetSD = sds?.onset
         snapshot.wakeSD = sds?.wake
-        snapshot.socialJetlag = jetlag
+        snapshot.socialJetlag = jetlag ?? usual?.socialJetlag
         snapshot.morningLight = light
 
         guard let baseline else {
@@ -44,7 +54,11 @@ enum CircadianModel {
             return snapshot
         }
 
-        snapshot.streakDays = streak(midpoints: nights.compactMap(\.midpointMinutes), baseline: baseline)
+        if isProvisional {
+            snapshot.status = .provisional(have: prior.count + 1, need: CircadianConfig.baselineMinimumNights + 1)
+        } else {
+            snapshot.streakDays = streak(midpoints: nights.compactMap(\.midpointMinutes), baseline: baseline)
+        }
         snapshot.score = alignment(onsetSD: sds?.onset, wakeSD: sds?.wake, nightsInConsistency: recent.count,
                                    light: light, drift: drift, weights: weights)
         return snapshot
@@ -86,30 +100,39 @@ enum CircadianModel {
                            zero: CircadianConfig.morningLightZeroCreditMinutes)
     }
 
-    static func lightAmountScore(minutesBeforeNoon: Double) -> Double {
-        min(1, max(0, minutesBeforeNoon / CircadianConfig.morningLightTargetMinutes))
+    /// Amount credit (0...1) for outdoor minutes before noon against the morning's goal. Minutes are
+    /// rounded to the nearest 5 (the Watch misses some), then the credit rises steeply and levels off
+    /// at the goal (square root): the first minutes outside do the most, so half the goal earns
+    /// about 70%, not 50%. Shorter light exposures give a disproportionately large share of the
+    /// clock-shifting effect of longer ones (Chang et al. 2012, J Physiol).
+    static func lightAmountScore(minutesBeforeNoon: Double, goalMinutes: Double) -> Double {
+        guard goalMinutes > 0 else { return 1 }
+        return min(1, (MorningLightGoal.credited(minutesBeforeNoon) / goalMinutes).squareRoot())
     }
 
-    static func morningLightScore(firstLightMinutes: Double?, minutesBeforeNoon: Double) -> (timing: Double, amount: Double, combined: Double) {
+    static func morningLightScore(firstLightMinutes: Double?, minutesBeforeNoon: Double,
+                                  goalMinutes: Double) -> (timing: Double, amount: Double, combined: Double) {
         let timing = lightTimingScore(firstLightMinutes: firstLightMinutes)
-        let amount = lightAmountScore(minutesBeforeNoon: minutesBeforeNoon)
+        let amount = lightAmountScore(minutesBeforeNoon: minutesBeforeNoon, goalMinutes: goalMinutes)
         let share = CircadianConfig.morningLightTimingShare
         return (timing, amount, share * timing + (1 - share) * amount)
     }
 
     /// Uses today's light once the morning is over (past noon), otherwise yesterday's complete morning.
+    /// Nil when that morning's light is unknown (no sensor and nothing reported).
     static func morningLightAssessment(days: [DayMetrics], now: Date, calendar: Calendar) -> MorningLightAssessment? {
-        guard days.contains(where: \.hasLightData) else { return nil }
         let today = calendar.startOfDay(for: now)
         let noon = calendar.date(bySettingHour: 12, minute: 0, second: 0, of: today) ?? now
         let useToday = now >= noon
         let targetDay = useToday ? today : (calendar.date(byAdding: .day, value: -1, to: today) ?? today)
-        guard let metrics = days.first(where: { calendar.isDate($0.day, inSameDayAs: targetDay) }) else { return nil }
+        guard let metrics = days.first(where: { calendar.isDate($0.day, inSameDayAs: targetDay) }),
+              metrics.hasLightData else { return nil }
         let s = morningLightScore(firstLightMinutes: metrics.light.firstLightAfterWakeMinutes,
-                                  minutesBeforeNoon: metrics.light.minutesBeforeNoon)
+                                  minutesBeforeNoon: metrics.light.minutesBeforeNoon, goalMinutes: metrics.lightGoalMinutes)
         return MorningLightAssessment(timingScore: s.timing, amountScore: s.amount, combined: s.combined,
                                       firstLightMinutes: metrics.light.firstLightAfterWakeMinutes,
-                                      minutesBeforeNoon: metrics.light.minutesBeforeNoon, isToday: useToday)
+                                      minutesBeforeNoon: metrics.light.minutesBeforeNoon,
+                                      goalMinutes: metrics.lightGoalMinutes, isToday: useToday)
     }
 
     static func consistencyScore(sd: Double) -> Double {
@@ -132,7 +155,7 @@ enum CircadianModel {
         }
         let raw: [(ScoreComponentKind, Double?, String)] = [
             (.consistency, consistencySD.map(consistencyScore(sd:)), consistencyDetail),
-            (.morningLight, light?.combined, light.map(lightDetail) ?? "No outdoor-light data (needs Apple Watch)"),
+            (.morningLight, light?.combined, light.map(lightDetail) ?? "No outdoor-light data, so this part is left out"),
             (.drift, drift.map(driftScore(drift:)), drift.map(driftDetail) ?? "Needs a baseline"),
         ]
         let available = raw.filter { $0.1 != nil }
@@ -150,7 +173,7 @@ enum CircadianModel {
     private static func lightDetail(_ light: MorningLightAssessment) -> String {
         let when = light.isToday ? "Today" : "Yesterday"
         let first = light.firstLightMinutes.map { "first outdoor light \(ClockMath.durationString($0)) after waking" } ?? "no outdoor light logged"
-        return "\(when): \(first), \(Int(light.minutesBeforeNoon.rounded())) min before noon"
+        return "\(when): \(first), \(Int(light.minutesBeforeNoon.rounded())) of \(Int(light.goalMinutes)) min before noon"
     }
 
     private static func driftDetail(_ drift: Double) -> String {
@@ -172,6 +195,30 @@ enum CircadianModel {
         if value <= perfect { return 1 }
         if value >= zero { return 0 }
         return 1 - (value - perfect) / (zero - perfect)
+    }
+
+    // MARK: - Score history
+
+    /// The score as it stood at the end of each past day (and as of `now` for today), using only
+    /// data available by then. Past days use that day's own morning light, so a value here can
+    /// differ slightly from what Today showed that morning (which used the previous morning).
+    static func scoreHistory(days: [DayMetrics], now: Date, calendar: Calendar = .current,
+                             weights: ScoreWeights = CircadianConfig.defaultWeights, usual: UsualSleep? = nil) -> [ScorePoint] {
+        let sorted = days.sorted { $0.day < $1.day }
+        var result: [ScorePoint] = []
+        for (i, day) in sorted.enumerated() where day.night != nil && day.midpointMinutes != nil {
+            // Older days can't affect the score, so bound the slice to keep this linear.
+            let slice = Array(sorted[max(0, i - CircadianConfig.scoreHistorySliceDays + 1)...i])
+            let endOfDay = calendar.date(bySettingHour: 23, minute: 59, second: 0, of: day.day) ?? day.day
+            let snap = snapshot(days: slice, now: min(endOfDay, now), calendar: calendar, weights: weights, usual: usual)
+            guard let score = snap.score else { continue }
+            var components: [ScoreComponentKind: Double] = [:]
+            for c in score.components { components[c.kind] = c.value }
+            result.append(ScorePoint(day: day.day, value: score.value, components: components,
+                                     consistencySD: snap.consistencySD, drift: snap.drift,
+                                     lightMinutesBeforeNoon: snap.morningLight?.minutesBeforeNoon))
+        }
+        return result
     }
 
     // MARK: - Series for trends
